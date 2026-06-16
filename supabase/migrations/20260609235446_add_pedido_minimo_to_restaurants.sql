@@ -1,0 +1,1 @@
+ALTER TABLE "Restaurants" ADD COLUMN IF NOT EXISTS pedido_minimo integer DEFAULT 0;
