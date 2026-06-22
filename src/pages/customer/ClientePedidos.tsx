@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Order, OrderStatus } from '../../lib/types'
+import type { Order, OrderItem, OrderStatus, MenuItem, CartItem } from '../../lib/types'
 import { useAuth } from '../../context/AuthContext'
+import { useCart } from '../../context/CartContext'
 
-const STATUS_STEPS: OrderStatus[] = ['Nuevo', 'Preparando', 'Listo', 'En camino', 'Entregado']
+const STATUS_STEPS: OrderStatus[] = ['Nuevo', 'En proceso', 'Entregado']
 
 function StatusProgress({ status }: { status: OrderStatus }) {
   const current = STATUS_STEPS.indexOf(status)
@@ -30,8 +31,12 @@ function StatusProgress({ status }: { status: OrderStatus }) {
 
 export default function ClientePedidos() {
   const { customer } = useAuth()
+  const { clearCart, addItem } = useCart()
+  const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [reordering, setReordering] = useState<string | null>(null)
+  const [reorderNotice, setReorderNotice] = useState<string | null>(null)
 
   const fetchOrders = useCallback(async () => {
     const localNums: string[] = JSON.parse(localStorage.getItem('yalo_mis_pedidos') || '[]')
@@ -85,13 +90,60 @@ export default function ClientePedidos() {
     return () => { supabase.removeChannel(channel) }
   }, [customer, fetchOrders])
 
-  const confirmReceived = async (id: string) => {
-    await supabase.from('orders').update({ status: 'Entregado' }).eq('id', id)
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'Entregado' } : o))
-  }
-
   const activeOrders = orders.filter(o => !['Entregado', 'Cancelado'].includes(o.status))
   const historial = orders.filter(o => ['Entregado', 'Cancelado'].includes(o.status))
+
+  const handleReorder = async (order: Order) => {
+    setReordering(order.id)
+    setReorderNotice(null)
+
+    const orderItems: OrderItem[] = Array.isArray(order.items)
+      ? order.items
+      : JSON.parse(order.items as unknown as string)
+
+    const dishIds = [...new Set(orderItems.map(i => i.dish_id).filter(Boolean))]
+
+    const { data: menuData } = await supabase
+      .from('menu_items')
+      .select('*')
+      .in('id', dishIds)
+      .eq('disponible', true)
+
+    const availableMap = new Map<string, MenuItem>(
+      ((menuData ?? []) as MenuItem[]).map(m => [m.id, m])
+    )
+
+    const cartItems: CartItem[] = []
+    let skipped = 0
+
+    for (const oi of orderItems) {
+      const dish = availableMap.get(oi.dish_id)
+      if (!dish) { skipped++; continue }
+      cartItems.push({
+        dish,
+        quantity: oi.quantity,
+        toppings: oi.toppings ?? [],
+        nota: oi.nota ?? '',
+        variantes_seleccionadas: oi.variantes_seleccionadas,
+        extras_seleccionados: oi.extras_seleccionados,
+        variantes_precio: oi.variantes_precio,
+      })
+    }
+
+    clearCart()
+    for (const ci of cartItems) addItem(ci)
+
+    setReordering(null)
+
+    if (skipped > 0) {
+      setReorderNotice(`${skipped} platillo${skipped > 1 ? 's' : ''} ya no ${skipped > 1 ? 'están disponibles' : 'está disponible'} y ${skipped > 1 ? 'fueron omitidos' : 'fue omitido'}.`)
+      setTimeout(() => {
+        navigate('/menu/mi-tierra?abrirCarrito=1')
+      }, 2000)
+    } else {
+      navigate('/menu/mi-tierra?abrirCarrito=1')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -103,6 +155,11 @@ export default function ClientePedidos() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-5 space-y-6">
+        {reorderNotice && (
+          <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 text-sm text-amber-800">
+            {reorderNotice} Cargando el resto de tu pedido...
+          </div>
+        )}
         {loading ? (
           <div className="text-center py-16 text-gray-400">Cargando...</div>
         ) : (
@@ -120,25 +177,17 @@ export default function ClientePedidos() {
                         <div>
                           <Link
                             to={`/pedido/${order.numero_orden}`}
-                            className="font-bold text-[#1A6B3C] hover:underline"
+                            className="font-bold text-[#1A6B3C] hover:underline text-base"
                           >
                             {order.numero_orden}
                           </Link>
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-sm text-gray-500 mt-0.5">
                             {order.delivery_type === 'domicilio' ? '🛵 A domicilio' : '🏪 Recoger en local'}
                           </p>
                         </div>
-                        <span className="font-bold text-gray-900">${order.total.toFixed(2)}</span>
+                        <span className="font-bold text-gray-900 text-base">${order.total.toFixed(2)}</span>
                       </div>
                       <StatusProgress status={order.status} />
-                      {order.status === 'En camino' && (
-                        <button
-                          onClick={() => confirmReceived(order.id)}
-                          className="mt-3 w-full bg-[#1A6B3C] text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-[#155a32]"
-                        >
-                          ✅ Confirmar recibido
-                        </button>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -155,23 +204,32 @@ export default function ClientePedidos() {
                       <div key={order.id} className="bg-white rounded-xl border border-gray-100 p-4">
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="font-bold text-gray-700">{order.numero_orden}</span>
-                            <p className="text-xs text-gray-500 mt-0.5">
+                            <span className="font-bold text-gray-700 text-base">{order.numero_orden}</span>
+                            <p className="text-sm text-gray-500 mt-0.5">
                               {new Date(order.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </p>
                           </div>
                           <div className="text-right">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${order.status === 'Entregado' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                            <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${order.status === 'Entregado' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                               {order.status}
                             </span>
-                            <p className="font-bold text-gray-900 mt-1">${order.total.toFixed(2)}</p>
+                            <p className="font-bold text-gray-900 text-base mt-1">${order.total.toFixed(2)}</p>
                           </div>
                         </div>
                         <div className="mt-2 space-y-0.5">
                           {orderItems.map((item: { nombre: string; quantity: number }, idx: number) => (
-                            <p key={idx} className="text-xs text-gray-600">{item.quantity}× {item.nombre}</p>
+                            <p key={idx} className="text-sm text-gray-600">{item.quantity}× {item.nombre}</p>
                           ))}
                         </div>
+                        {order.status === 'Entregado' && (
+                          <button
+                            onClick={() => handleReorder(order)}
+                            disabled={reordering === order.id}
+                            className="mt-3 w-full bg-[#1A6B3C] hover:bg-[#155a32] disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+                          >
+                            {reordering === order.id ? 'Cargando pedido...' : 'Volver a pedir'}
+                          </button>
+                        )}
                       </div>
                     )
                   })}

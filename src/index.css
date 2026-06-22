@@ -2,3 +2,16 @@
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Customer-facing base typography — prevents needing to pinch-zoom */
+html { font-size: 16px; }
+body { line-height: 1.55; overflow-x: hidden; }
+
+/* ── Thermal ticket print ───────────────────────────────────────────── */
+@media print {
+  body > *:not(#print-ticket) { display: none !important; }
+  body { margin: 0 !important; padding: 0 !important; }
+  #print-ticket { display: block !important; margin: 0 !important; padding: 0 !important; }
+  @page { size: 58mm auto; margin: 0; }
+}
+

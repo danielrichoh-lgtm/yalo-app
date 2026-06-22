@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { Restaurant, MenuItem, MenuCategoria } from '../../lib/types'
 import { MENU_CATEGORIAS } from '../../lib/types'
@@ -26,6 +26,7 @@ const FALLBACK_RESTAURANTS: Record<string, Restaurant> = {
     repartidor_externo: false,
     logo: null,
     pedido_minimo: 0,
+    tiempo_estimado: null,
     created_at: '',
   },
 }
@@ -44,6 +45,7 @@ function isOpen(restaurant: Restaurant): boolean {
 export default function MenuPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { customer, logout } = useAuth()
   const { setRestaurant } = useCart()
   const [restaurant, setRestaurantLocal] = useState<Restaurant | null>(null)
@@ -51,7 +53,6 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true)
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
-  const [bannerDismissed, setBannerDismissed] = useState(false)
   const [activeCategory, setActiveCategory] = useState<MenuCategoria | null>(null)
   const sectionRefs = useRef<Partial<Record<MenuCategoria, HTMLElement | null>>>({})
 
@@ -81,6 +82,11 @@ export default function MenuPage() {
 
         setRestaurantLocal(r)
         setRestaurant(r)
+
+        if (searchParams.get('abrirCarrito') === '1') {
+          setCartOpen(true)
+          setSearchParams({}, { replace: true })
+        }
 
         console.log('[MenuPage] fetching menu_items for restaurant_id:', r.id)
         supabase
@@ -175,16 +181,6 @@ export default function MenuPage() {
         </div>
       </header>
 
-      {/* Login banner */}
-      {!customer && !bannerDismissed && (
-        <div className="bg-amber-50 border-b border-amber-100 px-4 py-2.5 flex items-center justify-between max-w-2xl mx-auto">
-          <p className="text-sm text-amber-800">
-              <Link to="/cliente/registro" className="font-semibold underline">Crea una cuenta</Link> para guardar tu dirección y ver tus pedidos en cualquier dispositivo
-            </p>
-          <button onClick={() => setBannerDismissed(true)} className="text-amber-400 hover:text-amber-600 ml-3">×</button>
-        </div>
-      )}
-
       {/* Sticky category nav */}
       {open && visibleCategories.length > 1 && (
         <div className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
@@ -194,7 +190,7 @@ export default function MenuPage() {
                 <button
                   key={cat}
                   onClick={() => scrollToCategory(cat)}
-                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
+                  className={`whitespace-nowrap px-4 py-1.5 rounded-full text-base font-medium transition-colors flex-shrink-0 ${
                     activeCategory === cat
                       ? 'bg-[#1A6B3C] text-white'
                       : 'text-gray-600 hover:bg-gray-100'
@@ -226,7 +222,7 @@ export default function MenuPage() {
                   key={cat}
                   ref={el => { sectionRefs.current[cat] = el }}
                 >
-                  <h2 className="text-base font-bold text-gray-800 mb-3 pb-2 border-b border-gray-100">{cat}</h2>
+                  <h2 className="text-lg font-bold text-gray-800 mb-3 pb-2 border-b border-gray-100">{cat}</h2>
                   <div className="grid grid-cols-1 gap-3">
                     {catItems.map(item => (
                       <button
@@ -235,9 +231,16 @@ export default function MenuPage() {
                         className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4 text-left hover:border-[#1A6B3C]/30 hover:shadow-sm transition-all"
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900">{item.nombre}</p>
-                          {item.descripcion && <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{item.descripcion}</p>}
-                          <p className="text-[#1A6B3C] font-bold mt-1">${item.precio.toFixed(2)}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-gray-900 text-[17px] leading-snug">{item.nombre}</p>
+                            {item.es_destacado && (
+                              <span className="inline-flex items-center gap-0.5 bg-[#34C776]/15 text-[#1A6B3C] text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap">
+                                ⭐ Más pedido
+                              </span>
+                            )}
+                          </div>
+                          {item.descripcion && <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-relaxed">{item.descripcion}</p>}
+                          <p className="text-[#1A6B3C] font-bold text-base mt-1.5">${item.precio.toFixed(2)}</p>
                         </div>
                         {item.foto && (
                           <img src={item.foto} alt={item.nombre} className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />

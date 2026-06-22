@@ -31,6 +31,15 @@ function groupRuleLabel(g: VarianteGrupo): string {
   return `Elige de ${min} a ${max}`
 }
 
+// Groups whose name matches these patterns are treated as optional (min=0)
+// regardless of what's stored in the DB.
+const OPTIONAL_NAME_PATTERNS = [/consom[eé]/i, /caldo/i]
+
+function effectiveMin(g: VarianteGrupo): number {
+  if (OPTIONAL_NAME_PATTERNS.some(p => p.test(g.nombre))) return 0
+  return g.min ?? 1
+}
+
 export default function DishModal({ dish, onClose }: Props) {
   const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
@@ -62,7 +71,7 @@ export default function DishModal({ dish, onClose }: Props) {
   }
 
   const groupsBelowMin = standardGroups.filter(g => {
-    const min = g.min ?? 1
+    const min = effectiveMin(g)
     return (checkboxSelections[g.nombre] ?? []).length < min
   })
 
@@ -185,12 +194,12 @@ export default function DishModal({ dish, onClose }: Props) {
         )}
         <div className="p-5">
           <h2 className="text-xl font-bold text-gray-900">{dish.nombre}</h2>
-          {dish.descripcion && <p className="text-gray-500 mt-1 text-sm">{dish.descripcion}</p>}
-          <p className="text-[#1A6B3C] font-bold text-lg mt-2">${dish.precio.toFixed(2)}</p>
+          {dish.descripcion && <p className="text-gray-500 mt-1 text-base leading-relaxed">{dish.descripcion}</p>}
+          <p className="text-[#1A6B3C] font-bold text-xl mt-2">${dish.precio.toFixed(2)}</p>
 
           {/* Standard groups — checkbox with min/max */}
           {standardGroups.map(group => {
-            const min = group.min ?? 1
+            const min = effectiveMin(group)
             const max = group.max ?? 1
             const selected = checkboxSelections[group.nombre] ?? []
             const atMax = selected.length >= max
@@ -199,9 +208,12 @@ export default function DishModal({ dish, onClose }: Props) {
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                     {group.nombre}
-                    {min > 0 && <span className="text-xs font-normal text-red-500">Requerido</span>}
+                    {min > 0
+                      ? <span className="text-xs font-normal text-red-500">Requerido</span>
+                      : <span className="text-xs font-normal text-gray-400">Opcional</span>
+                    }
                   </h3>
-                  <span className="text-xs text-gray-400">{groupRuleLabel(group)}</span>
+                  <span className="text-xs text-gray-400">{groupRuleLabel({ ...group, min })}</span>
                 </div>
                 {atMax && max > 1 && (
                   <p className="text-xs text-amber-600 mb-1">Máximo {max} opciones</p>
@@ -230,13 +242,13 @@ export default function DishModal({ dish, onClose }: Props) {
                           checked={isSelected}
                           disabled={isDisabled}
                           onChange={() => !isDisabled && toggleCheckbox(group.nombre, op.nombre, max)}
-                          className="accent-[#1A6B3C]"
+                          className="accent-[#1A6B3C] w-4 h-4"
                         />
-                        <span className="flex-1 text-sm text-gray-800">{op.nombre}</span>
+                        <span className="flex-1 text-base text-gray-800">{op.nombre}</span>
                         {isUnavailable ? (
-                          <span className="text-xs text-gray-400 font-medium">Agotado</span>
+                          <span className="text-sm text-gray-400 font-medium">Agotado</span>
                         ) : op.precio > 0 ? (
-                          <span className="text-xs text-[#1A6B3C] font-medium">+${op.precio.toFixed(2)}</span>
+                          <span className="text-sm text-[#1A6B3C] font-medium">+${op.precio.toFixed(2)}</span>
                         ) : null}
                       </label>
                     )
@@ -293,23 +305,23 @@ export default function DishModal({ dish, onClose }: Props) {
                     return (
                       <div key={op.nombre} className={`flex items-center justify-between p-3 rounded-xl border border-gray-100 ${isUnavailable ? 'opacity-50' : ''}`}>
                         <div>
-                          <span className="text-sm text-gray-800">{op.nombre}</span>
+                          <span className="text-base text-gray-800">{op.nombre}</span>
                           {isUnavailable ? (
-                            <span className="text-xs text-gray-400 font-medium ml-2">Agotado</span>
+                            <span className="text-sm text-gray-400 font-medium ml-2">Agotado</span>
                           ) : op.precio > 0 ? (
-                            <span className="text-xs text-[#1A6B3C] font-medium ml-2">+${op.precio.toFixed(2)}</span>
+                            <span className="text-sm text-[#1A6B3C] font-medium ml-2">+${op.precio.toFixed(2)}</span>
                           ) : null}
                         </div>
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => !isUnavailable && updateContador(group.nombre, op.nombre, -1)}
                             disabled={isUnavailable}
-                            className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 text-sm disabled:cursor-not-allowed"
+                            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 text-base disabled:cursor-not-allowed"
                           >−</button>
-                          <span className="text-sm font-semibold w-5 text-center">{count}</span>
+                          <span className="text-base font-semibold w-5 text-center">{count}</span>
                           <button
                             onClick={() => !incDisabled && updateContador(group.nombre, op.nombre, 1)}
-                            className={`w-7 h-7 rounded-full flex items-center justify-center text-sm ${
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-base ${
                               incDisabled
                                 ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
                                 : 'bg-[#1A6B3C] text-white hover:bg-[#155a32]'
@@ -344,8 +356,8 @@ export default function DishModal({ dish, onClose }: Props) {
                       }`}
                     >
                       <div>
-                        <p className="text-sm text-gray-800">{extra.nombre}</p>
-                        <p className="text-xs font-medium">
+                        <p className="text-base text-gray-800">{extra.nombre}</p>
+                        <p className="text-sm font-medium mt-0.5">
                           {isUnavailable ? (
                             <span className="text-gray-400">Agotado</span>
                           ) : (
@@ -360,12 +372,12 @@ export default function DishModal({ dish, onClose }: Props) {
                         <button
                           onClick={() => !isUnavailable && updateExtra(extra.nombre, -1, limit)}
                           disabled={isUnavailable}
-                          className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 text-sm disabled:cursor-not-allowed"
+                          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-gray-200 text-base disabled:cursor-not-allowed"
                         >−</button>
-                        <span className="text-sm font-semibold w-4 text-center">{count}</span>
+                        <span className="text-base font-semibold w-4 text-center">{count}</span>
                         <button
                           onClick={() => !atMax && !isUnavailable && updateExtra(extra.nombre, 1, limit)}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-sm ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-base ${
                             atMax || isUnavailable
                               ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
                               : 'bg-[#1A6B3C] text-white hover:bg-[#155a32]'
@@ -380,27 +392,27 @@ export default function DishModal({ dish, onClose }: Props) {
           )}
 
           <div className="mt-5 flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">Cantidad</span>
+            <span className="text-base font-medium text-gray-700">Cantidad</span>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-bold hover:bg-gray-200"
+                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-bold hover:bg-gray-200 text-lg"
               >−</button>
-              <span className="font-semibold w-4 text-center">{quantity}</span>
+              <span className="font-semibold text-lg w-5 text-center">{quantity}</span>
               <button
                 onClick={() => setQuantity(q => q + 1)}
-                className="w-8 h-8 rounded-full bg-[#1A6B3C] flex items-center justify-center text-white font-bold hover:bg-[#155a32]"
+                className="w-9 h-9 rounded-full bg-[#1A6B3C] flex items-center justify-center text-white font-bold hover:bg-[#155a32] text-lg"
               >+</button>
             </div>
           </div>
 
           <div className="mt-5">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nota especial</label>
+            <label className="block text-base font-medium text-gray-700 mb-1">Nota especial</label>
             <textarea
               value={nota}
               onChange={e => setNota(e.target.value)}
               placeholder="Sin cebolla, extra picante..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none h-20 focus:outline-none focus:border-[#1A6B3C]"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-base resize-none h-20 focus:outline-none focus:border-[#1A6B3C]"
             />
           </div>
 

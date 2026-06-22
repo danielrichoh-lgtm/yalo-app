@@ -133,7 +133,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
   }
 
   const addVariantGroup = () => {
-    setVariantGroups(prev => [...prev, { nombre: '', opciones: [], min: 1, max: 1 }])
+    setVariantGroups(prev => [...prev, { nombre: '', opciones: [], min: 0, max: 1 }])
   }
 
   const removeVariantGroup = (idx: number) => {
@@ -184,7 +184,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
     setVariantGroups(prev => prev.map((g, i) => {
       if (i !== idx) return g
       if (tipo === 'contador') {
-        return { ...g, tipo, min: g.min ?? g.total ?? 1, max: g.max ?? g.total ?? 1, total: undefined }
+        return { ...g, tipo, min: g.min ?? g.total ?? 0, max: g.max ?? g.total ?? 1, total: undefined }
       }
       return { ...g, tipo: undefined, total: undefined }
     }))
@@ -541,7 +541,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                           <span className="text-xs text-gray-500">Min</span>
                           <input
                             type="number"
-                            value={group.min ?? 1}
+                            value={group.min ?? 0}
                             min={0}
                             onChange={e => updateVariantGroupMin(idx, parseInt(e.target.value) || 0)}
                             className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
@@ -560,7 +560,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                           <span className="text-xs text-gray-500">Min</span>
                           <input
                             type="number"
-                            value={group.min ?? 1}
+                            value={group.min ?? 0}
                             min={0}
                             onChange={e => updateVariantGroupMin(idx, parseInt(e.target.value) || 0)}
                             className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"

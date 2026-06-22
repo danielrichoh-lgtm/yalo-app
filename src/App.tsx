@@ -12,6 +12,7 @@ import ClienteRecuperar from './pages/customer/ClienteRecuperar'
 import ClientePedidos from './pages/customer/ClientePedidos'
 import Checkout from './pages/Checkout'
 import Confirmacion from './pages/Confirmacion'
+import PedidoConfirmado from './pages/PedidoConfirmado'
 import PedidoTracking from './pages/PedidoTracking'
 import ResetPassword from './pages/ResetPassword'
 import RestaurantRecuperar from './pages/restaurant/RestaurantRecuperar'
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/cliente/pedidos" element={<ClientePedidos />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/confirmacion" element={<Confirmacion />} />
+            <Route path="/pedido/confirmado/:orderId" element={<PedidoConfirmado />} />
             <Route path="/pedido/:numeroOrden" element={<PedidoTracking />} />
             <Route path="/restaurant/recuperar" element={<RestaurantRecuperar />} />
             <Route path="/reset-password" element={<ResetPassword />} />

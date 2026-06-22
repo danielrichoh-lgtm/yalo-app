@@ -40,6 +40,7 @@ export interface Restaurant {
   repartidor_externo: boolean
   logo: string | null
   pedido_minimo: number
+  tiempo_estimado: number | null
   created_at: string
 }
 
@@ -49,6 +50,13 @@ export interface Customer {
   telefono: string
   email: string
   password: string
+  // saved address fields for pre-filling checkout
+  telefono_guardado?: string
+  calle?: string
+  interior_depto?: string
+  colonia?: string
+  municipio?: string
+  referencias?: string
   created_at: string
 }
 
@@ -66,6 +74,8 @@ export interface MenuItem {
   variantes: string | null
   extras: string | null
   categoria: MenuCategoria
+  es_destacado: boolean | null
+  es_upsell: boolean | null
   created_at: string
 }
 
@@ -87,7 +97,7 @@ export interface OrderItem {
   variantes_precio?: number
 }
 
-export type OrderStatus = 'Nuevo' | 'Preparando' | 'Listo' | 'En camino' | 'Entregado' | 'Cancelado'
+export type OrderStatus = 'Nuevo' | 'En proceso' | 'Entregado' | 'Cancelado'
 export type DeliveryType = 'pickup' | 'domicilio'
 
 export interface Order {
@@ -98,11 +108,19 @@ export interface Order {
   customer_nombre: string
   customer_telefono: string
   delivery_type: DeliveryType
+  // structured address fields (new orders)
+  calle?: string
+  interior_depto?: string
+  identificador_lugar?: string
+  colonia?: string
+  municipio?: string
+  referencias?: string
+  indicaciones: string
+  // legacy address fields (kept for backward compat with old orders)
   direccion: string
   establecimiento: string
   piso: string
   despacho: string
-  indicaciones: string
   items: OrderItem[]
   subtotal: number
   costo_envio: number
@@ -110,6 +128,7 @@ export interface Order {
   monto_pago: number
   cambio: number
   status: OrderStatus
+  archivado: boolean
   created_at: string
 }
 
