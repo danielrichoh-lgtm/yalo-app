@@ -111,6 +111,7 @@ export interface Order {
   // structured address fields (new orders)
   calle?: string
   interior_depto?: string
+  piso_despacho?: string
   identificador_lugar?: string
   colonia?: string
   municipio?: string

@@ -18,6 +18,7 @@ export default function Checkout() {
     telefono: customer?.telefono_guardado || customer?.telefono || '',
     calle: customer?.calle ?? '',
     interior_depto: customer?.interior_depto ?? '',
+    piso_despacho: '',
     identificador_lugar: '',
     colonia: customer?.colonia ?? '',
     municipio: customer?.municipio ?? '',
@@ -38,7 +39,7 @@ export default function Checkout() {
     const prefillAddress = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('calle, interior_depto, identificador_lugar, colonia, municipio, referencias, indicaciones')
+        .select('calle, interior_depto, piso_despacho, identificador_lugar, colonia, municipio, referencias, indicaciones')
         .eq('customer_email', customer.email)
         .eq('delivery_type', 'domicilio')
         .order('created_at', { ascending: false })
@@ -49,6 +50,7 @@ export default function Checkout() {
         ...f,
         calle: f.calle || data.calle || '',
         interior_depto: f.interior_depto || data.interior_depto || '',
+        piso_despacho: f.piso_despacho || data.piso_despacho || '',
         identificador_lugar: f.identificador_lugar || data.identificador_lugar || '',
         colonia: f.colonia || data.colonia || '',
         municipio: f.municipio || data.municipio || '',
@@ -168,6 +170,7 @@ export default function Checkout() {
       // new structured fields
       calle: form.calle,
       interior_depto: form.interior_depto,
+      piso_despacho: form.piso_despacho || null,
       identificador_lugar: form.identificador_lugar,
       colonia: form.colonia,
       municipio: form.municipio,
@@ -319,6 +322,9 @@ export default function Checkout() {
             {field('identificador_lugar', 'Nombre del establecimiento o color de la casa', {
               required: true,
               placeholder: 'Casa azul, Farmacia Guadalajara, Edificio Torres...',
+            })}
+            {field('piso_despacho', 'Piso y despacho', {
+              placeholder: 'Piso 3, despacho B...',
             })}
             {field('colonia', 'Colonia', {
               required: true,

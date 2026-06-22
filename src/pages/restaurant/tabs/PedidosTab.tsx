@@ -90,6 +90,7 @@ function printOrder(order: Order): void {
   const addrLines: string[] = []
   if (order.calle) {
     addrLines.push(`<b>${order.calle}${order.interior_depto ? ', ' + order.interior_depto : ''}</b>`)
+    if (order.piso_despacho) addrLines.push(`&#128205; ${order.piso_despacho}`)
     if (order.identificador_lugar) addrLines.push(`&#127968; ${order.identificador_lugar}`)
     const colMun = [order.colonia ? `Col. ${order.colonia}` : '', order.municipio ?? ''].filter(Boolean).join(', ')
     if (colMun) addrLines.push(colMun)
@@ -484,6 +485,7 @@ function OrderCard({ order, now, onAccept, onDecline, children }: CardProps) {
           {order.calle ? (
             <div className="text-sm font-semibold space-y-0.5" style={{ color: c.textColor, opacity: 0.9 }}>
               <p>📍 {[order.calle, order.interior_depto].filter(Boolean).join(', ')}</p>
+              {order.piso_despacho && <p style={{ opacity: 0.9 }}>📌 {order.piso_despacho}</p>}
               {order.identificador_lugar && <p style={{ opacity: 1 }}>🏠 {order.identificador_lugar}</p>}
               <p style={{ opacity: 0.85 }}>Col. {order.colonia}{order.municipio ? `, ${order.municipio}` : ''}</p>
               {order.referencias && <p style={{ opacity: 0.75 }}>🗺 {order.referencias}</p>}
