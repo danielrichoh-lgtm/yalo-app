@@ -89,9 +89,9 @@ function printOrder(order: Order): void {
 
   const addrLines: string[] = []
   if (order.calle) {
-    addrLines.push(`<b>${order.calle}${order.interior_depto ? ', ' + order.interior_depto : ''}</b>`)
-    if (order.piso_despacho) addrLines.push(`&#128205; ${order.piso_despacho}`)
     if (order.identificador_lugar) addrLines.push(`&#127968; ${order.identificador_lugar}`)
+    addrLines.push(order.calle + (order.interior_depto ? ', ' + order.interior_depto : ''))
+    if (order.piso_despacho) addrLines.push(`${order.piso_despacho}`)
     const colMun = [order.colonia ? `Col. ${order.colonia}` : '', order.municipio ?? ''].filter(Boolean).join(', ')
     if (colMun) addrLines.push(colMun)
     if (order.referencias) addrLines.push(`Ref: ${order.referencias}`)
@@ -103,16 +103,16 @@ function printOrder(order: Order): void {
 
   const itemsHtml = items.map(item => {
     const variants = item.variantes_seleccionadas?.length
-      ? `<div style="font-size:9pt;color:#333;word-break:break-word;">&#8226; ${item.variantes_seleccionadas.join(' · ')}</div>` : ''
+      ? `<div style="font-size:8pt;color:#333;word-break:break-word;">&#8226; ${item.variantes_seleccionadas.join(' · ')}</div>` : ''
     const extras = item.extras_seleccionados?.length
-      ? `<div style="font-size:9pt;color:#333;word-break:break-word;">+ ${item.extras_seleccionados.map(e => (e.cantidad > 1 ? `${e.cantidad} ${e.nombre}` : e.nombre)).join(', ')}</div>` : ''
+      ? `<div style="font-size:8pt;color:#333;word-break:break-word;">+ ${item.extras_seleccionados.map(e => (e.cantidad > 1 ? `${e.cantidad} ${e.nombre}` : e.nombre)).join(', ')}</div>` : ''
     const toppings = item.toppings?.length
-      ? `<div style="font-size:9pt;color:#333;word-break:break-word;">+ ${item.toppings.map(t => t.nombre).join(', ')}</div>` : ''
+      ? `<div style="font-size:8pt;color:#333;word-break:break-word;">+ ${item.toppings.map(t => t.nombre).join(', ')}</div>` : ''
     const nota = item.nota
-      ? `<div style="font-size:8pt;font-style:italic;color:#555;word-break:break-word;">"${item.nota}"</div>` : ''
+      ? `<div style="font-size:7pt;font-style:italic;color:#555;word-break:break-word;">"${item.nota}"</div>` : ''
     return `
-      <div style="text-align:center;margin-bottom:8px;">
-        <div style="font-size:14pt;font-weight:900;word-break:break-word;line-height:1.2;">${item.quantity}&times; ${item.nombre}</div>
+      <div style="text-align:center;margin-bottom:6px;">
+        <div style="font-size:11pt;font-weight:900;word-break:break-word;line-height:1.2;">${item.quantity}&times; ${item.nombre}</div>
         ${variants}${extras}${toppings}${nota}
       </div>`
   }).join('')
@@ -132,15 +132,15 @@ function printOrder(order: Order): void {
   </div>
   ${solid}
   <div style="text-align:center;margin-bottom:4px;">
-    <div style="font-size:10pt;font-weight:700;">${dateStr}</div>
-    <div style="font-size:10pt;font-weight:700;margin-top:1px;word-break:break-word;">${order.customer_nombre}</div>
-    <div style="font-size:8pt;word-break:break-word;">Tel: ${order.customer_telefono}</div>
+    <div style="font-size:11pt;font-weight:900;word-break:break-word;">${order.customer_nombre}</div>
+    <div style="font-size:10pt;font-weight:700;word-break:break-word;">Tel: ${order.customer_telefono}</div>
+    <div style="font-size:8pt;color:#555;">${dateStr}</div>
   </div>
   ${order.delivery_type === 'domicilio' && addrLines.length > 0 ? `
-  ${dash}
-  <div style="text-align:center;margin-bottom:4px;">
-    <div style="font-size:7pt;font-weight:900;text-transform:uppercase;margin-bottom:2px;">Direcci&#243;n de entrega</div>
-    ${addrLines.map(l => `<div style="font-size:8pt;margin-bottom:1px;word-break:break-word;overflow-wrap:break-word;">${l}</div>`).join('')}
+  ${solid}
+  <div style="text-align:center;margin-bottom:5px;">
+    <div style="font-size:8pt;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">&#9660; Direcci&#243;n de entrega &#9660;</div>
+    ${addrLines.map(l => `<div style="font-size:14pt;font-weight:900;word-break:break-word;overflow-wrap:break-word;line-height:1.25;margin-bottom:2px;">${l}</div>`).join('')}
   </div>` : ''}
   ${solid}
   <div style="text-align:center;margin-bottom:5px;">
