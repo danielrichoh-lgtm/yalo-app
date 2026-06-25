@@ -16,10 +16,12 @@ export default function Checkout() {
   const [form, setForm] = useState({
     nombre: customer?.nombre ?? '',
     telefono: customer?.telefono_guardado || customer?.telefono || '',
-    calle: customer?.calle ?? '',
-    interior_depto: customer?.interior_depto ?? '',
-    piso_despacho: '',
+    lugarType: 'oficina' as 'oficina' | 'casa',
     identificador_lugar: '',
+    calle: customer?.calle ?? '',
+    piso: '',
+    despacho: '',
+    extension: '',
     colonia: customer?.colonia ?? '',
     municipio: customer?.municipio ?? '',
     referencias: customer?.referencias ?? '',
@@ -39,7 +41,7 @@ export default function Checkout() {
     const prefillAddress = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('calle, interior_depto, piso_despacho, identificador_lugar, colonia, municipio, referencias, indicaciones')
+        .select('identificador_lugar, calle, colonia, municipio, referencias, indicaciones')
         .eq('customer_email', customer.email)
         .eq('delivery_type', 'domicilio')
         .order('created_at', { ascending: false })
@@ -48,14 +50,13 @@ export default function Checkout() {
       if (!data) return
       setForm(f => ({
         ...f,
-        calle: f.calle || data.calle || '',
-        interior_depto: f.interior_depto || data.interior_depto || '',
-        piso_despacho: f.piso_despacho || data.piso_despacho || '',
         identificador_lugar: f.identificador_lugar || data.identificador_lugar || '',
+        calle: f.calle || data.calle || '',
         colonia: f.colonia || data.colonia || '',
         municipio: f.municipio || data.municipio || '',
         referencias: f.referencias || data.referencias || '',
         indicaciones: f.indicaciones || data.indicaciones || '',
+        lugarType: data.identificador_lugar ? 'oficina' : 'casa',
       }))
     }
     prefillAddress()
@@ -72,7 +73,7 @@ export default function Checkout() {
   const deliveryCost = deliveryType === 'domicilio' ? costoPorPlatillo * dishCount : 0
   const orderTotal = total + deliveryCost
   const montoPago = parseFloat(form.monto_pago) || 0
-  const cambio = Math.max(0, montoPago - orderTotal)
+  const cambio = montoPago > 0 ? Math.max(0, montoPago - orderTotal) : 0
   const isExact = form.monto_pago !== '' && montoPago > 0 && montoPago === orderTotal
   const belowTotal = form.monto_pago !== '' && montoPago > 0 && montoPago < orderTotal
 
@@ -83,13 +84,12 @@ export default function Checkout() {
     }
     if (deliveryType === 'domicilio') {
       if (!form.calle.trim()) errs.calle = 'La calle y número son requeridos'
-      if (!form.identificador_lugar.trim()) errs.identificador_lugar = 'Este campo es requerido para el repartidor'
-      if (!form.colonia.trim()) errs.colonia = 'La colonia es requerida'
+      if (form.lugarType === 'oficina' && !form.identificador_lugar.trim()) {
+        errs.identificador_lugar = 'El nombre del establecimiento es requerido'
+      }
       if (!form.municipio.trim()) errs.municipio = 'El municipio es requerido'
     }
-    if (!form.monto_pago) {
-      errs.monto_pago = 'Ingresa el monto de pago'
-    } else if (montoPago < orderTotal) {
+    if (form.monto_pago && montoPago > 0 && montoPago < orderTotal) {
       errs.monto_pago = 'El monto debe ser mayor o igual al total'
     }
     return errs
@@ -110,7 +110,6 @@ export default function Checkout() {
       nombre: form.nombre,
       telefono_guardado: form.telefono,
       calle: form.calle,
-      interior_depto: form.interior_depto,
       colonia: form.colonia,
       municipio: form.municipio,
       referencias: form.referencias,
@@ -121,9 +120,7 @@ export default function Checkout() {
       .eq('id', customer.id)
       .select()
       .single()
-    if (data) {
-      setCustomer({ ...customer, ...patch })
-    }
+    if (data) setCustomer({ ...customer, ...patch })
   }
 
   const doInsert = async () => {
@@ -160,6 +157,11 @@ export default function Checkout() {
       }
     })
 
+    const pisoParts = [form.piso, form.despacho, form.extension].map(v => v.trim()).filter(Boolean)
+    const pisoCombined = pisoParts.length > 0 ? pisoParts.join(' · ') : null
+    const finalMonto = montoPago > 0 ? montoPago : orderTotal
+    const finalCambio = Math.max(0, finalMonto - orderTotal)
+
     const { data: order, error: dbError } = await supabase.from('orders').insert({
       numero_orden,
       restaurant_id: '1b991239-7915-4106-b883-8b50897682f8',
@@ -167,16 +169,14 @@ export default function Checkout() {
       customer_nombre: form.nombre,
       customer_telefono: form.telefono,
       delivery_type: deliveryType,
-      // new structured fields
       calle: form.calle,
-      interior_depto: form.interior_depto,
-      piso_despacho: form.piso_despacho || null,
-      identificador_lugar: form.identificador_lugar,
+      interior_depto: '',
+      piso_despacho: pisoCombined,
+      identificador_lugar: form.lugarType === 'oficina' ? form.identificador_lugar : null,
       colonia: form.colonia,
       municipio: form.municipio,
       referencias: form.referencias,
       indicaciones: form.indicaciones,
-      // legacy fields cleared for new orders
       direccion: '',
       establecimiento: '',
       piso: 'No aplica',
@@ -185,8 +185,8 @@ export default function Checkout() {
       subtotal: total,
       costo_envio: deliveryCost,
       total: orderTotal,
-      monto_pago: montoPago,
-      cambio,
+      monto_pago: finalMonto,
+      cambio: finalCambio,
       status: 'Nuevo',
     }).select().single()
 
@@ -198,7 +198,6 @@ export default function Checkout() {
       return
     }
 
-    // Save address to customer profile in the background
     await saveCustomerAddress()
 
     const saved = JSON.parse(localStorage.getItem('yalo_mis_pedidos') || '[]')
@@ -211,8 +210,7 @@ export default function Checkout() {
     navigate(`/pedido/confirmado/${order.id}`)
   }
 
-  // Inline field updater with live validation
-  const field = (
+  const inp = (
     name: keyof typeof form,
     label: string,
     opts?: {
@@ -224,13 +222,12 @@ export default function Checkout() {
       autoComplete?: string
     }
   ) => {
-    const val = form[name]
+    const val = form[name] as string
     const err = fieldErrors[name]
     return (
       <div>
         <label className="block text-base font-medium text-gray-700 mb-1">
-          {label}
-          {opts?.required && <span className="text-red-400 ml-1">*</span>}
+          {label}{opts?.required && <span className="text-red-400 ml-1">*</span>}
         </label>
         <input
           type={opts?.type ?? 'text'}
@@ -246,7 +243,7 @@ export default function Checkout() {
             if (submitted && opts?.required) {
               setFieldErrors(prev => ({
                 ...prev,
-                [name]: v.trim() ? '' : `${label.replace(' *', '')} es requerido`,
+                [name]: v.trim() ? '' : `${label} es requerido`,
               }))
             }
           }}
@@ -257,8 +254,21 @@ export default function Checkout() {
     )
   }
 
+  const smallInp = (name: 'piso' | 'despacho' | 'extension', label: string, placeholder: string) => (
+    <div className="flex-1 min-w-0">
+      <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+      <input
+        type="text"
+        value={form[name]}
+        placeholder={placeholder}
+        onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
+        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1A6B3C]"
+      />
+    </div>
+  )
+
   const addressSummary = deliveryType === 'domicilio'
-    ? [form.calle, form.interior_depto, form.colonia, form.municipio].filter(Boolean).join(', ')
+    ? [form.calle, form.colonia, form.municipio].filter(Boolean).join(', ')
     : null
 
   return (
@@ -272,19 +282,19 @@ export default function Checkout() {
 
       <form onSubmit={handleSubmit} className="max-w-2xl mx-auto px-4 py-5 space-y-4">
 
-        {/* Contact */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
-          <h2 className="font-bold text-gray-900 text-lg">Datos de contacto</h2>
-          {field('nombre', 'Nombre completo', { required: true, placeholder: 'Juan Pérez', autoComplete: 'name' })}
+        {/* BLOQUE 1 — CONTACTO */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-sm">
+          <h2 className="font-bold text-gray-900 text-lg">Contacto</h2>
+          {inp('nombre', 'Nombre completo', { required: true, placeholder: 'Juan Pérez', autoComplete: 'name' })}
           <div>
             <label className="block text-base font-medium text-gray-700 mb-1">
-              Teléfono (10 dígitos)<span className="text-red-400 ml-1">*</span>
+              Teléfono<span className="text-red-400 ml-1">*</span>
             </label>
             <input
               value={form.telefono}
               inputMode="numeric"
               maxLength={10}
-              placeholder="8112345678"
+              placeholder="10 dígitos"
               autoComplete="tel"
               onChange={e => {
                 const v = e.target.value.replace(/\D/g, '').slice(0, 10)
@@ -300,61 +310,101 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Delivery address — structured fields */}
         {deliveryType === 'domicilio' && (
-          <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold text-gray-900 text-lg">Dirección de entrega</h2>
-              {customer && (customer.calle || customer.colonia) && (
-                <span className="text-xs text-[#1A6B3C] font-medium">Guardada ✓</span>
-              )}
+          <>
+            {/* BLOQUE 2 — ¿A DÓNDE LLEVAMOS TU PEDIDO? */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+              <h2 className="font-bold text-gray-900 text-lg mb-4">¿A dónde llevamos tu pedido?</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, lugarType: 'oficina' }))}
+                  className={`py-4 rounded-xl font-bold text-base border-2 transition-colors flex flex-col items-center gap-1 ${
+                    form.lugarType === 'oficina'
+                      ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white'
+                      : 'bg-white border-gray-200 text-gray-600'
+                  }`}
+                >
+                  <span className="text-2xl">🏢</span>
+                  <span>Oficina / Comercio</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, lugarType: 'casa' }))}
+                  className={`py-4 rounded-xl font-bold text-base border-2 transition-colors flex flex-col items-center gap-1 ${
+                    form.lugarType === 'casa'
+                      ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white'
+                      : 'bg-white border-gray-200 text-gray-600'
+                  }`}
+                >
+                  <span className="text-2xl">🏠</span>
+                  <span>Casa</span>
+                </button>
+              </div>
             </div>
 
-            {field('calle', 'Calle y número', {
-              required: true,
-              placeholder: 'Av. Reforma 123',
-              autoComplete: 'address-line1',
-            })}
-            {field('interior_depto', 'Interior / depto', {
-              placeholder: 'Depto. 4B, Local 2...',
-              autoComplete: 'address-line2',
-            })}
-            {field('identificador_lugar', 'Nombre del establecimiento o color de la casa', {
-              required: true,
-              placeholder: 'Casa azul, Farmacia Guadalajara, Edificio Torres...',
-            })}
-            {field('piso_despacho', 'Piso y despacho', {
-              placeholder: 'Piso 3, despacho B...',
-            })}
-            {field('colonia', 'Colonia', {
-              required: true,
-              placeholder: 'Col. Centro',
-            })}
-            {field('municipio', 'Municipio', {
-              required: true,
-              placeholder: 'Monterrey',
-            })}
-            {field('referencias', 'Referencias (cruces, puntos de referencia)', {
-              placeholder: 'Entre Juárez y Morelos, frente a la farmacia...',
-            })}
-            {field('indicaciones', 'Indicaciones adicionales al repartidor', {
-              placeholder: 'Tocar el timbre, segundo piso...',
-            })}
-          </div>
+            {/* BLOQUE 3 — UBICACIÓN */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-gray-900 text-lg">Ubicación</h2>
+                {customer && (customer.calle || customer.colonia) && (
+                  <span className="text-xs text-[#1A6B3C] font-semibold">Guardada ✓</span>
+                )}
+              </div>
+
+              {form.lugarType === 'oficina' && (
+                inp('identificador_lugar', 'Nombre del establecimiento o comercio', {
+                  required: true,
+                  placeholder: 'Farmacia Guadalajara, Edificio Torres...',
+                })
+              )}
+
+              {inp('calle', 'Calle y número', {
+                required: true,
+                placeholder: 'Av. Reforma 123',
+                autoComplete: 'address-line1',
+              })}
+
+              {form.lugarType === 'oficina' && (
+                <div className="flex gap-2">
+                  {smallInp('piso', 'Piso', 'Piso 3')}
+                  {smallInp('despacho', 'Despacho', 'Desp. B')}
+                  {smallInp('extension', 'Extensión', 'Ext. 4501')}
+                </div>
+              )}
+
+              {inp('colonia', 'Colonia', {
+                placeholder: 'Col. Centro',
+              })}
+
+              {inp('municipio', 'Municipio', {
+                required: true,
+                placeholder: 'Monterrey',
+              })}
+
+              {inp('referencias', 'Referencias', {
+                placeholder: 'Entre Juárez y Morelos, frente a la farmacia...',
+              })}
+
+              {inp('indicaciones', 'Indicaciones al repartidor', {
+                placeholder: 'Tocar el timbre, preguntar por Juan...',
+              })}
+            </div>
+          </>
         )}
 
-        {/* Pickup — still capture indicaciones */}
+        {/* Pickup — indicaciones only */}
         {deliveryType === 'pickup' && (
-          <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
             <h2 className="font-bold text-gray-900 text-lg mb-3">¿Alguna indicación?</h2>
-            {field('indicaciones', 'Indicaciones (opcional)', {
+            {inp('indicaciones', 'Indicaciones (opcional)', {
               placeholder: 'Paso a recoger en 20 min...',
             })}
           </div>
         )}
 
-        {/* Payment */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
+        {/* BLOQUE 4 — PAGO */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-sm">
           <h2 className="font-bold text-gray-900 text-lg">Pago</h2>
           <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
             <span className="text-xl">💵</span>
@@ -365,7 +415,7 @@ export default function Checkout() {
           </div>
           <div>
             <label className="block text-base font-medium text-gray-700 mb-1">
-              ¿Con cuánto va a pagar?<span className="text-red-400 ml-1">*</span>
+              ¿Con cuánto pagas?
             </label>
             <input
               type="number"
@@ -376,27 +426,32 @@ export default function Checkout() {
                   const val = parseFloat(e.target.value) || 0
                   setFieldErrors(prev => ({
                     ...prev,
-                    monto_pago: !e.target.value ? 'Ingresa el monto de pago' : val < orderTotal ? 'El monto debe ser mayor o igual al total' : '',
+                    monto_pago: e.target.value && val > 0 && val < orderTotal
+                      ? 'El monto debe ser mayor o igual al total'
+                      : '',
                   }))
                 }
               }}
               min={orderTotal}
               step="1"
-              placeholder={`Mínimo $${orderTotal.toFixed(2)}`}
+              placeholder={`Ej. $${orderTotal.toFixed(0)}`}
               className={`w-full border rounded-xl px-4 py-3 text-base focus:outline-none ${fieldErrors.monto_pago ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-[#1A6B3C]'}`}
             />
             {fieldErrors.monto_pago && <p className="text-red-500 text-sm mt-1">{fieldErrors.monto_pago}</p>}
             {isExact && <p className="text-base text-[#1A6B3C] font-medium mt-1.5">Pago exacto ✓</p>}
             {!isExact && montoPago > orderTotal && montoPago > 0 && (
-              <p className="text-base text-[#1A6B3C] font-medium mt-1.5">
-                Cambio estimado: <span className="font-bold">${cambio.toFixed(2)}</span>
+              <p className="text-base text-[#1A6B3C] font-bold mt-1.5">
+                Tu cambio: <span>${cambio.toFixed(2)}</span>
               </p>
+            )}
+            {!form.monto_pago && (
+              <p className="text-sm text-gray-400 mt-1.5">Si dejas vacío, se asume pago exacto</p>
             )}
           </div>
         </div>
 
         {/* Order summary */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <h2 className="font-bold text-gray-900 text-lg mb-3">Resumen del pedido</h2>
           <div className="space-y-2 mb-3">
             {items.map((item, idx) => {
@@ -432,6 +487,16 @@ export default function Checkout() {
           </div>
         </div>
 
+        {/* Aviso de cobertura */}
+        {deliveryType === 'domicilio' && (
+          <div className="rounded-2xl px-4 py-3.5 flex gap-3" style={{ backgroundColor: '#FEFCE8', border: '1.5px solid #FDE047' }}>
+            <span className="text-lg shrink-0 mt-0.5">📍</span>
+            <p className="text-sm text-yellow-800 leading-relaxed">
+              Solo entregamos a domicilio dentro de un radio aproximado de 1 km del restaurante. Si tu ubicación está fuera de esta zona, tu pedido podría cambiarse a <strong>PARA RECOGER</strong>.
+            </p>
+          </div>
+        )}
+
         {error && <p className="text-red-500 text-base text-center">{error}</p>}
 
         <button
@@ -451,7 +516,6 @@ export default function Checkout() {
 
             <div className="space-y-1.5 max-h-44 overflow-y-auto">
               {items.map((item, idx) => {
-                const extrasCost = (item.extras_seleccionados ?? []).reduce((s, e) => s + e.precio * e.cantidad, 0)
                 return (
                   <div key={idx} className="flex justify-between text-base">
                     <span className="text-gray-700 leading-snug">
@@ -461,7 +525,7 @@ export default function Checkout() {
                         : ''}
                     </span>
                     <span className="font-medium text-gray-900 ml-2 shrink-0">
-                      ${(item.dish.precio * item.quantity + extrasCost).toFixed(2)}
+                      ${(item.dish.precio * item.quantity + (item.extras_seleccionados ?? []).reduce((s, e) => s + e.precio * e.cantidad, 0)).toFixed(2)}
                     </span>
                   </div>
                 )
@@ -482,7 +546,13 @@ export default function Checkout() {
             <div className="bg-gray-50 rounded-xl px-4 py-3 space-y-1 text-base text-gray-700">
               <p>{deliveryType === 'pickup' ? '🏪 Recoger en local' : '🛵 Entrega a domicilio'}</p>
               {addressSummary && <p className="text-sm text-gray-500">{addressSummary}</p>}
-              <p>💵 Pagas con: <span className="font-semibold">${montoPago.toFixed(2)}</span>{cambio > 0 ? ` · Cambio: $${cambio.toFixed(2)}` : ' · Pago exacto ✓'}</p>
+              <p>
+                💵 Pagas con:{' '}
+                <span className="font-semibold">
+                  {montoPago > 0 ? `$${montoPago.toFixed(2)}` : `$${orderTotal.toFixed(2)} (exacto)`}
+                </span>
+                {cambio > 0 ? ` · Cambio: $${cambio.toFixed(2)}` : ''}
+              </p>
             </div>
 
             <div className="flex gap-3 pt-1">
