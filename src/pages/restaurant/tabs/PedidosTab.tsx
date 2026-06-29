@@ -337,12 +337,14 @@ export default function PedidosTab({ restaurant }: Props) {
           <h2 className="font-bold text-gray-900 mb-3 text-lg">En proceso ({enProceso.length})</h2>
           <div className="space-y-3">
             {enProceso.map(order => (
-              <OrderCard key={order.id} order={order} now={now}>
-                <div className="mt-4 flex gap-2 flex-wrap items-center">
+              <OrderCard key={order.id} order={order} now={now}
+                onCancel={() => updateStatus(order.id, 'Cancelado')}
+              >
+                <div className="mt-4">
                   <button
                     onClick={() => updateStatus(order.id, 'Entregado')}
                     style={{ backgroundColor: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.5)', color: '#fff' }}
-                    className="font-bold text-base px-5 py-2.5 rounded-xl active:scale-95 transition-transform flex-1"
+                    className="font-bold text-base px-5 py-2.5 rounded-xl active:scale-95 transition-transform w-full"
                   >
                     Marcar como Entregado ✓
                   </button>
@@ -439,15 +441,17 @@ interface CardProps {
   now: number
   onAccept?: () => void
   onDecline?: () => void
+  onCancel?: () => void
   children?: React.ReactNode
 }
 
-function OrderCard({ order, now, onAccept, onDecline, children }: CardProps) {
+function OrderCard({ order, now, onAccept, onDecline, onCancel, children }: CardProps) {
   const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items as unknown as string)
   const isLate = order.status === 'Nuevo' && (now - new Date(order.created_at).getTime()) > 10 * 60_000
   const c = getColors(order.status)
   const elapsed = elapsedLabel(order.created_at, now)
   const [confirmingDecline, setConfirmingDecline] = useState(false)
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
 
   return (
     <div className="rounded-2xl p-4 shadow-md" style={{ backgroundColor: c.bg, border: `2px solid ${c.borderColor}` }}>
@@ -586,6 +590,33 @@ function OrderCard({ order, now, onAccept, onDecline, children }: CardProps) {
         </div>
       )}
 
+      {confirmingCancel && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center sm:px-4" onClick={() => setConfirmingCancel(false)}>
+          <div
+            className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-5 space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-bold text-gray-900 text-lg leading-snug">¿Cancelar este pedido?</h3>
+            <p className="text-sm text-gray-600 leading-relaxed">La comanda ya se imprimió — verifica con cocina antes de cancelar. Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setConfirmingCancel(false)}
+                className="flex-1 py-3 rounded-xl font-semibold text-base border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                No, regresar
+              </button>
+              <button
+                onClick={() => { setConfirmingCancel(false); onCancel?.() }}
+                className="flex-1 py-3 rounded-xl font-bold text-base text-white transition-colors"
+                style={{ backgroundColor: '#DC2626' }}
+              >
+                Sí, cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Manual print fallback */}
       <button
         onClick={() => printOrder(order)}
@@ -595,6 +626,15 @@ function OrderCard({ order, now, onAccept, onDecline, children }: CardProps) {
         🖨 Imprimir comanda
       </button>
       {children}
+      {onCancel && (
+        <button
+          onClick={() => setConfirmingCancel(true)}
+          className="mt-2 w-full py-2 rounded-xl text-sm font-semibold transition-colors active:scale-95"
+          style={{ backgroundColor: 'rgba(220,38,38,0.10)', color: '#B91C1C', border: '1.5px solid rgba(220,38,38,0.25)' }}
+        >
+          Cancelar pedido
+        </button>
+      )}
     </div>
   )
 }
