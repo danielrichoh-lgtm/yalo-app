@@ -41,6 +41,21 @@ export interface Restaurant {
   logo: string | null
   pedido_minimo: number
   tiempo_estimado: number | null
+  activo?: boolean
+  ultimo_numero_orden?: number
+  direccion?: string
+  telefono?: string
+  banner_promo?: string | null
+  banner_activo?: boolean | null
+  created_at: string
+}
+
+export interface RestaurantUser {
+  id: string
+  user_id: string
+  restaurant_id: string
+  rol: string
+  email: string
   created_at: string
 }
 
@@ -130,6 +145,8 @@ export interface Order {
   cambio: number
   status: OrderStatus
   archivado: boolean
+  codigo_descuento?: string | null
+  monto_descuento?: number
   created_at: string
 }
 

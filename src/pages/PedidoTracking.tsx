@@ -42,6 +42,7 @@ export default function PedidoTracking() {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [showDetails, setShowDetails] = useState(false)
+  const [restaurantSlug, setRestaurantSlug] = useState<string>('')
 
   useEffect(() => {
     if (!numeroOrden) return
@@ -56,6 +57,18 @@ export default function PedidoTracking() {
         setLoading(false)
       })
   }, [numeroOrden])
+
+  useEffect(() => {
+    if (!order?.restaurant_id) return
+    supabase
+      .from('Restaurants')
+      .select('slug')
+      .eq('id', order.restaurant_id)
+      .maybeSingle()
+      .then(({ data }) => { if (data?.slug) setRestaurantSlug(data.slug) })
+  }, [order?.restaurant_id])
+
+  const menuPath = restaurantSlug ? `/menu/${restaurantSlug}` : '/'
 
   useEffect(() => {
     if (!order?.id) return
@@ -89,7 +102,7 @@ export default function PedidoTracking() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Pedido no encontrado</p>
-          <button onClick={() => navigate('/menu/mi-tierra')} className="text-[#1A6B3C] font-semibold hover:underline">
+          <button onClick={() => navigate(menuPath)} className="text-[#1A6B3C] font-semibold hover:underline">
             Ir al menú
           </button>
         </div>
@@ -116,7 +129,7 @@ export default function PedidoTracking() {
           </div>
           <OrderItemsCard order={order} />
           <button
-            onClick={() => navigate('/menu/mi-tierra')}
+            onClick={() => navigate(menuPath)}
             className="w-full bg-[#1A6B3C] text-white py-4 rounded-xl font-bold text-base hover:bg-[#155a32] transition-colors"
           >
             Volver al menú
@@ -144,7 +157,7 @@ export default function PedidoTracking() {
             <Link to="/cliente/pedidos" className="flex-1 border border-[#1A6B3C] text-[#1A6B3C] py-3.5 rounded-xl font-semibold text-center text-base hover:bg-green-50">
               Mis pedidos
             </Link>
-            <Link to="/menu/mi-tierra" className="flex-1 bg-[#1A6B3C] text-white py-3.5 rounded-xl font-semibold text-center text-base hover:bg-[#155a32]">
+            <Link to={menuPath} className="flex-1 bg-[#1A6B3C] text-white py-3.5 rounded-xl font-semibold text-center text-base hover:bg-[#155a32]">
               Volver al menú
             </Link>
           </div>
@@ -297,7 +310,7 @@ export default function PedidoTracking() {
           <Link to="/cliente/pedidos" className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl font-semibold text-center text-base hover:bg-gray-50">
             Mis pedidos
           </Link>
-          <Link to="/menu/mi-tierra" className="flex-1 border border-[#1A6B3C] text-[#1A6B3C] py-3 rounded-xl font-semibold text-center text-base hover:bg-green-50">
+          <Link to={menuPath} className="flex-1 border border-[#1A6B3C] text-[#1A6B3C] py-3 rounded-xl font-semibold text-center text-base hover:bg-green-50">
             Ver menú
           </Link>
         </div>

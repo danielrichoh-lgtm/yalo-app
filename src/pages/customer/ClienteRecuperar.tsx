@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
 export default function ClienteRecuperar() {
@@ -8,6 +8,7 @@ export default function ClienteRecuperar() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -28,9 +29,9 @@ export default function ClienteRecuperar() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <Link to="/menu/mi-tierra" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
           ← Volver al menú
-        </Link>
+        </button>
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Recuperar contraseña</h1>
           <p className="text-sm text-gray-500 mt-1">Te enviaremos un enlace a tu correo</p>

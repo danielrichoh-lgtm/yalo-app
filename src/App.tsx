@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
-import { ProtectedRestaurantRoute } from './components/ProtectedRoute'
+import { ProtectedRestaurantRoute, ProtectedAdminRoute } from './components/ProtectedRoute'
 import RestaurantLogin from './pages/restaurant/RestaurantLogin'
 import RestaurantDashboard from './pages/restaurant/RestaurantDashboard'
 import MenuPage from './pages/customer/MenuPage'
@@ -16,6 +16,8 @@ import PedidoConfirmado from './pages/PedidoConfirmado'
 import PedidoTracking from './pages/PedidoTracking'
 import ResetPassword from './pages/ResetPassword'
 import RestaurantRecuperar from './pages/restaurant/RestaurantRecuperar'
+import AdminLogin from './pages/admin/AdminLogin'
+import AdminDashboard from './pages/admin/AdminDashboard'
 
 export default function App() {
   return (
@@ -31,6 +33,15 @@ export default function App() {
                 <ProtectedRestaurantRoute>
                   <RestaurantDashboard />
                 </ProtectedRestaurantRoute>
+              }
+            />
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminDashboard />
+                </ProtectedAdminRoute>
               }
             />
             <Route path="/menu/:slug/sucursal" element={<BranchSelectPage />} />

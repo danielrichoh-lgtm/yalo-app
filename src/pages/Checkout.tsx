@@ -6,6 +6,13 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import type { DeliveryType, OrderItem } from '../lib/types'
 
+type AppliedCoupon = {
+  id: string
+  codigo: string
+  tipo: 'porcentaje' | 'monto_fijo'
+  valor: number
+}
+
 export default function Checkout() {
   const { items, restaurant, total, clearCart } = useCart()
   const { customer, setCustomer } = useAuth()
@@ -36,6 +43,12 @@ export default function Checkout() {
   const [confirmModal, setConfirmModal] = useState(false)
   const orderConfirmed = useRef(false)
 
+  // Discount coupon state
+  const [couponInput, setCouponInput] = useState('')
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState('')
+
   useEffect(() => {
     if (!customer) return
     const prefillAddress = async () => {
@@ -64,18 +77,88 @@ export default function Checkout() {
 
   useEffect(() => {
     if (items.length === 0 && !orderConfirmed.current) {
-      navigate('/menu/mi-tierra')
+      navigate(restaurant?.slug ? `/menu/${restaurant.slug}` : '/')
     }
-  }, [items.length, navigate])
+  }, [items.length, navigate, restaurant])
 
   const costoPorPlatillo = restaurant?.costo_envio_por_platillo ?? 0
   const dishCount = items.reduce((sum, it) => sum + it.quantity, 0)
   const deliveryCost = deliveryType === 'domicilio' ? costoPorPlatillo * dishCount : 0
-  const orderTotal = total + deliveryCost
+
+  // Discount amount always applies on subtotal only
+  const descuento = coupon
+    ? coupon.tipo === 'porcentaje'
+      ? Math.min(total * (coupon.valor / 100), total)
+      : Math.min(coupon.valor, total)
+    : 0
+
+  const orderTotal = total - descuento + deliveryCost
   const montoPago = parseFloat(form.monto_pago) || 0
   const cambio = montoPago > 0 ? Math.max(0, montoPago - orderTotal) : 0
   const isExact = form.monto_pago !== '' && montoPago > 0 && montoPago === orderTotal
   const belowTotal = form.monto_pago !== '' && montoPago > 0 && montoPago < orderTotal
+
+  const applyCode = async () => {
+    const codigo = couponInput.trim().toUpperCase()
+    if (!codigo) return
+    setCouponLoading(true)
+    setCouponError('')
+
+    const { data: codes } = await supabase
+      .from('discount_codes')
+      .select('*')
+      .eq('codigo', codigo)
+      .eq('activo', true)
+
+    if (!codes || codes.length === 0) {
+      setCouponLoading(false)
+      setCouponError('Código no válido')
+      return
+    }
+
+    // Match: restaurant-specific first, then global
+    const dc = codes.find((c: Record<string, unknown>) =>
+      c.restaurant_id === null || c.restaurant_id === restaurant?.id
+    )
+
+    if (!dc) {
+      setCouponLoading(false)
+      setCouponError('Código no válido para este restaurante')
+      return
+    }
+
+    if (dc.fecha_inicio && new Date(dc.fecha_inicio as string) > new Date()) {
+      setCouponLoading(false)
+      setCouponError('Este código todavía no está vigente')
+      return
+    }
+    if (dc.fecha_fin && new Date(dc.fecha_fin as string) < new Date()) {
+      setCouponLoading(false)
+      setCouponError('Código expirado')
+      return
+    }
+    if (dc.usos_maximos !== null && (dc.usos_actuales as number) >= (dc.usos_maximos as number)) {
+      setCouponLoading(false)
+      setCouponError('Código agotado')
+      return
+    }
+    if (dc.monto_minimo !== null && total < (dc.monto_minimo as number)) {
+      setCouponLoading(false)
+      setCouponError(`Pedido mínimo de $${Number(dc.monto_minimo).toFixed(0)} para aplicar este código`)
+      return
+    }
+
+    setCoupon({ id: dc.id as string, codigo: dc.codigo as string, tipo: dc.tipo as 'porcentaje' | 'monto_fijo', valor: dc.valor as number })
+    setFieldErrors(prev => ({ ...prev, monto_pago: '' }))
+    setCouponLoading(false)
+  }
+
+  const removeCoupon = () => {
+    setCoupon(null)
+    setCouponInput('')
+    setCouponError('')
+    setFieldErrors(prev => ({ ...prev, monto_pago: '' }))
+  }
 
   const validate = () => {
     const errs: Record<string, string> = {}
@@ -126,17 +209,50 @@ export default function Checkout() {
   const doInsert = async () => {
     setLoading(true)
 
-    const { data: lastOrder } = await supabase
-      .from('orders')
-      .select('numero_orden')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    // Re-validate coupon at insert time
+    let finalDescuento = 0
+    let couponCodigoToSave: string | null = null
 
-    let nextNum = 1
-    if (lastOrder?.numero_orden) {
-      const match = lastOrder.numero_orden.match(/(\d+)$/)
-      if (match) nextNum = parseInt(match[1]) + 1
+    if (coupon) {
+      const { data: dc } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('id', coupon.id)
+        .maybeSingle()
+
+      const isValid = dc
+        && dc.activo
+        && (dc.restaurant_id === null || dc.restaurant_id === restaurant!.id)
+        && (!dc.fecha_inicio || new Date(dc.fecha_inicio as string) <= new Date())
+        && (!dc.fecha_fin || new Date(dc.fecha_fin as string) >= new Date())
+        && (dc.usos_maximos === null || (dc.usos_actuales as number) < (dc.usos_maximos as number))
+        && (dc.monto_minimo === null || total >= (dc.monto_minimo as number))
+
+      if (!isValid) {
+        setLoading(false)
+        setConfirmModal(false)
+        setCoupon(null)
+        setCouponInput('')
+        setError('El código de descuento ya no es válido. Revisa tu pedido antes de continuar.')
+        return
+      }
+
+      finalDescuento = (dc.tipo as string) === 'porcentaje'
+        ? Math.min(total * ((dc.valor as number) / 100), total)
+        : Math.min(dc.valor as number, total)
+      couponCodigoToSave = dc.codigo as string
+    }
+
+    const finalTotal = total - finalDescuento + deliveryCost
+
+    const { data: nextNum, error: rpcError } = await supabase.rpc('increment_order_number', {
+      p_restaurant_id: restaurant!.id,
+    })
+    if (rpcError || nextNum == null) {
+      setLoading(false)
+      setConfirmModal(false)
+      setError('Error al generar número de orden. Intenta de nuevo.')
+      return
     }
     const numero_orden = `ORD-${String(nextNum).padStart(3, '0')}`
 
@@ -159,12 +275,12 @@ export default function Checkout() {
 
     const pisoParts = [form.piso, form.despacho, form.extension].map(v => v.trim()).filter(Boolean)
     const pisoCombined = pisoParts.length > 0 ? pisoParts.join(' · ') : null
-    const finalMonto = montoPago > 0 ? montoPago : orderTotal
-    const finalCambio = Math.max(0, finalMonto - orderTotal)
+    const finalMonto = montoPago > 0 ? montoPago : finalTotal
+    const finalCambio = Math.max(0, finalMonto - finalTotal)
 
     const { data: order, error: dbError } = await supabase.from('orders').insert({
       numero_orden,
-      restaurant_id: '1b991239-7915-4106-b883-8b50897682f8',
+      restaurant_id: restaurant!.id,
       customer_email: customer?.email ?? '',
       customer_nombre: form.nombre,
       customer_telefono: form.telefono,
@@ -184,18 +300,55 @@ export default function Checkout() {
       items: JSON.stringify(orderItems),
       subtotal: total,
       costo_envio: deliveryCost,
-      total: orderTotal,
+      total: finalTotal,
       monto_pago: finalMonto,
       cambio: finalCambio,
+      codigo_descuento: couponCodigoToSave,
+      monto_descuento: finalDescuento,
       status: 'Nuevo',
     }).select().single()
 
     if (dbError || !order) {
       console.error('Order insert error:', dbError)
+      console.error('Order insert error (full):', JSON.stringify(dbError, null, 2))
+      console.error('Order insert payload:', JSON.stringify({
+        numero_orden,
+        restaurant_id: restaurant!.id,
+        customer_email: customer?.email ?? '',
+        customer_nombre: form.nombre,
+        customer_telefono: form.telefono,
+        delivery_type: deliveryType,
+        calle: form.calle,
+        interior_depto: '',
+        piso_despacho: pisoCombined,
+        identificador_lugar: form.lugarType === 'oficina' ? form.identificador_lugar : null,
+        colonia: form.colonia,
+        municipio: form.municipio,
+        referencias: form.referencias,
+        indicaciones: form.indicaciones,
+        direccion: '',
+        establecimiento: '',
+        piso: 'No aplica',
+        despacho: '',
+        items: orderItems,
+        subtotal: total,
+        costo_envio: deliveryCost,
+        total: finalTotal,
+        monto_pago: finalMonto,
+        cambio: finalCambio,
+        codigo_descuento: couponCodigoToSave,
+        monto_descuento: finalDescuento,
+        status: 'Nuevo',
+      }, null, 2))
       setLoading(false)
       setConfirmModal(false)
       setError('Error al enviar el pedido. Intenta de nuevo.')
       return
+    }
+
+    // Atomically increment coupon usage after successful insert
+    if (coupon) {
+      await supabase.rpc('increment_coupon_usage', { p_coupon_id: coupon.id })
     }
 
     await saveCustomerAddress()
@@ -450,7 +603,57 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Order summary */}
+        {/* BLOQUE 5 — CÓDIGO DE DESCUENTO */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 shadow-sm">
+          <h2 className="font-bold text-gray-900 text-lg">¿Tienes un código de descuento?</h2>
+          {!coupon ? (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponInput}
+                  onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCode() } }}
+                  placeholder="Ej. VERANO15"
+                  maxLength={30}
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-base font-mono uppercase focus:outline-none focus:border-[#1A6B3C] tracking-wider"
+                />
+                <button
+                  type="button"
+                  onClick={applyCode}
+                  disabled={couponLoading || !couponInput.trim()}
+                  className="px-5 py-3 rounded-xl bg-[#1A6B3C] text-white font-bold text-base disabled:opacity-50 shrink-0 transition-opacity"
+                >
+                  {couponLoading ? '...' : 'Aplicar'}
+                </button>
+              </div>
+              {couponError && <p className="text-red-500 text-sm font-medium">{couponError}</p>}
+            </div>
+          ) : (
+            <div
+              className="flex items-center justify-between rounded-xl px-4 py-3"
+              style={{ backgroundColor: 'rgba(52,199,118,0.10)', border: '1.5px solid #34C776' }}
+            >
+              <div>
+                <p className="font-bold text-sm" style={{ color: '#15803D' }}>
+                  ✓ Código aplicado: {coupon.codigo}
+                </p>
+                <p className="text-sm font-semibold mt-0.5" style={{ color: '#15803D' }}>
+                  -{descuento.toFixed(2)} de descuento
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={removeCoupon}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-light ml-3 leading-none"
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* BLOQUE 6 — RESUMEN DEL PEDIDO */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <h2 className="font-bold text-gray-900 text-lg mb-3">Resumen del pedido</h2>
           <div className="space-y-2 mb-3">
@@ -473,6 +676,12 @@ export default function Checkout() {
           </div>
           <div className="border-t border-gray-100 pt-2 space-y-1.5">
             <div className="flex justify-between text-base text-gray-600"><span>Subtotal</span><span>${total.toFixed(2)}</span></div>
+            {descuento > 0 && coupon && (
+              <div className="flex justify-between text-base font-semibold" style={{ color: '#15803D' }}>
+                <span>Descuento ({coupon.codigo})</span>
+                <span>-${descuento.toFixed(2)}</span>
+              </div>
+            )}
             {deliveryType === 'pickup' ? (
               <div className="flex justify-between text-base text-gray-600"><span>Recoger en local</span><span>Gratis</span></div>
             ) : costoPorPlatillo > 0 ? (
@@ -515,25 +724,29 @@ export default function Checkout() {
             <h3 className="font-bold text-gray-900 text-lg">¿Confirmas tu pedido?</h3>
 
             <div className="space-y-1.5 max-h-44 overflow-y-auto">
-              {items.map((item, idx) => {
-                return (
-                  <div key={idx} className="flex justify-between text-base">
-                    <span className="text-gray-700 leading-snug">
-                      {item.quantity}× {item.dish.nombre}
-                      {item.variantes_seleccionadas && item.variantes_seleccionadas.length > 0
-                        ? ` (${item.variantes_seleccionadas.join(', ')})`
-                        : ''}
-                    </span>
-                    <span className="font-medium text-gray-900 ml-2 shrink-0">
-                      ${(item.dish.precio * item.quantity + (item.extras_seleccionados ?? []).reduce((s, e) => s + e.precio * e.cantidad, 0)).toFixed(2)}
-                    </span>
-                  </div>
-                )
-              })}
+              {items.map((item, idx) => (
+                <div key={idx} className="flex justify-between text-base">
+                  <span className="text-gray-700 leading-snug">
+                    {item.quantity}× {item.dish.nombre}
+                    {item.variantes_seleccionadas && item.variantes_seleccionadas.length > 0
+                      ? ` (${item.variantes_seleccionadas.join(', ')})`
+                      : ''}
+                  </span>
+                  <span className="font-medium text-gray-900 ml-2 shrink-0">
+                    ${(item.dish.precio * item.quantity + (item.extras_seleccionados ?? []).reduce((s, e) => s + e.precio * e.cantidad, 0)).toFixed(2)}
+                  </span>
+                </div>
+              ))}
             </div>
 
             <div className="border-t border-gray-100 pt-3 space-y-1.5">
               <div className="flex justify-between text-base text-gray-600"><span>Subtotal</span><span>${total.toFixed(2)}</span></div>
+              {descuento > 0 && coupon && (
+                <div className="flex justify-between text-base font-semibold" style={{ color: '#15803D' }}>
+                  <span>Descuento ({coupon.codigo})</span>
+                  <span>-${descuento.toFixed(2)}</span>
+                </div>
+              )}
               {deliveryCost > 0 && costoPorPlatillo > 0 && (
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>Envío: ${costoPorPlatillo} × {dishCount} platillo{dishCount !== 1 ? 's' : ''}</span>

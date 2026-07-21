@@ -21,15 +21,29 @@ export default function RestaurantLogin() {
       setLoading(false)
       return setError('Correo o contraseña incorrectos')
     }
+
+    const { data: assignment } = await supabase
+      .from('restaurant_users')
+      .select('restaurant_id')
+      .eq('user_id', data.user.id)
+      .maybeSingle()
+
+    if (!assignment?.restaurant_id) {
+      await supabase.auth.signOut()
+      setLoading(false)
+      return setError('No tienes un restaurante asignado')
+    }
+
     const { data: restaurant } = await supabase
       .from('Restaurants')
       .select('*')
-      .eq('email', email.trim())
+      .eq('id', assignment.restaurant_id)
       .single()
+
     setLoading(false)
     if (!restaurant) {
       await supabase.auth.signOut()
-      return setError('No se encontró un restaurante asociado a este correo')
+      return setError('No se encontró el restaurante asignado')
     }
     sessionStorage.setItem('restaurant_session', JSON.stringify(restaurant))
     window.location.href = '/restaurant/dashboard'

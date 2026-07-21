@@ -54,7 +54,9 @@ export default function MenuPage() {
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<MenuCategoria | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const sectionRefs = useRef<Partial<Record<MenuCategoria, HTMLElement | null>>>({})
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (slug && !sessionStorage.getItem(`branch_selected_${slug}`)) {
@@ -134,6 +136,18 @@ export default function MenuPage() {
     )
   }
 
+  if (restaurant.activo === false) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+        <div className="text-center">
+          <p className="text-4xl mb-4">🚫</p>
+          <h1 className="text-xl font-bold text-gray-800 mb-2">Restaurante no disponible</h1>
+          <p className="text-gray-500 text-sm">Este restaurante no está disponible en este momento.</p>
+        </div>
+      </div>
+    )
+  }
+
   const open = isOpen(restaurant)
 
   return (
@@ -161,6 +175,20 @@ export default function MenuPage() {
                     81 8340-5611
                   </a>
                 </p>
+                {restaurant.direccion && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.direccion)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-white/80 hover:text-white underline-offset-2 hover:underline inline-flex items-center gap-1 mt-0.5"
+                  >
+                    <span>📍</span>
+                    {restaurant.direccion}
+                  </a>
+                )}
+                <p className="text-[11px] text-white/45 mt-0.5 leading-snug">
+                  🛵 Enviamos solo a 500 metros a la redonda
+                </p>
               </div>
             </div>
             <div className="text-right text-sm">
@@ -182,7 +210,7 @@ export default function MenuPage() {
       </header>
 
       {/* Sticky category nav */}
-      {open && visibleCategories.length > 1 && (
+      {visibleCategories.length > 1 && (
         <div className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
           <div className="max-w-2xl mx-auto px-4">
             <div className="flex gap-1 overflow-x-auto no-scrollbar py-2">
@@ -205,13 +233,28 @@ export default function MenuPage() {
       )}
 
       <main className="max-w-2xl mx-auto px-4 py-5">
-        {!open ? (
-          <div className="text-center py-20">
-            <p className="text-5xl mb-4">🌙</p>
-            <h2 className="text-xl font-bold text-gray-800">Restaurante cerrado</h2>
-            <p className="text-gray-500 mt-2">Vuelve pronto · Horario: {restaurant.hora_apertura} – {restaurant.hora_cierre}</p>
+        {!open && (
+          <div className="mb-5 rounded-2xl bg-amber-50 border border-amber-200 px-5 py-3.5 text-center">
+            <p className="text-amber-800 font-semibold text-[15px] leading-snug">
+              Ahorita estamos cerrados. Abrimos a las {restaurant.hora_apertura}.
+            </p>
           </div>
-        ) : items.length === 0 ? (
+        )}
+        {restaurant.banner_activo && restaurant.banner_promo && restaurant.banner_promo.trim() !== '' && (
+          <div className="mb-5">
+            <p className="text-[11px] font-bold tracking-[0.12em] text-[#1A6B3C] uppercase mb-1.5 px-1">
+              Promoción de la semana
+            </p>
+            <div className="rounded-2xl bg-gradient-to-r from-[#34C776] to-[#2ba85f] px-5 py-3.5 text-center shadow-sm">
+              <p className="text-white font-semibold text-[15px] leading-snug">
+                {open
+                  ? restaurant.banner_promo.trim()
+                  : `🍪 Al abrir, tu pedido en línea trae galleta GRATIS`}
+              </p>
+            </div>
+          </div>
+        )}
+        {items.length === 0 ? (
           <div className="text-center py-20 text-gray-400">No hay platillos disponibles</div>
         ) : (
           <div className="space-y-8">
@@ -227,8 +270,16 @@ export default function MenuPage() {
                     {catItems.map(item => (
                       <button
                         key={item.id}
-                        onClick={() => setSelectedDish(item)}
-                        className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4 text-left hover:border-[#1A6B3C]/30 hover:shadow-sm transition-all"
+                        onClick={() => {
+                          if (!open) {
+                            if (toastTimer.current) clearTimeout(toastTimer.current)
+                            setToast('Disponible cuando abramos')
+                            toastTimer.current = setTimeout(() => setToast(null), 2000)
+                            return
+                          }
+                          setSelectedDish(item)
+                        }}
+                        className={`bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4 text-left transition-all ${open ? 'hover:border-[#1A6B3C]/30 hover:shadow-sm' : 'opacity-60'}`}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -255,9 +306,27 @@ export default function MenuPage() {
         )}
       </main>
 
+      <footer className="max-w-2xl mx-auto px-4 py-8 text-center">
+        <a
+          href="https://holayalo.mx"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#34C776] transition-colors"
+        >
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#34C776]" />
+          Powered by Yalo
+        </a>
+      </footer>
+
       {selectedDish && <DishModal dish={selectedDish} onClose={() => setSelectedDish(null)} />}
       {cartOpen && <CartDrawer onClose={() => setCartOpen(false)} />}
-      <CartButton onOpen={() => setCartOpen(true)} />
+      <CartButton onOpen={() => setCartOpen(true)} disabled={!open} />
+
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

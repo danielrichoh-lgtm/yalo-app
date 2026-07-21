@@ -45,15 +45,15 @@ export default function ClienteRegistro() {
     setLoading(false)
     if (dbError || !data) return setError('Error al guardar datos. Intenta de nuevo.')
     setCustomer(data as Customer)
-    navigate('/menu/mi-tierra')
+    navigate(-1)
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <Link to="/menu/mi-tierra" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
           ← Volver al menú
-        </Link>
+        </button>
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1A6B3C] mb-3">
             <span className="text-white text-2xl font-bold">Y</span>

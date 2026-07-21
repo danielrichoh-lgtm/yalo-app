@@ -31,12 +31,13 @@ function StatusProgress({ status }: { status: OrderStatus }) {
 
 export default function ClientePedidos() {
   const { customer } = useAuth()
-  const { clearCart, addItem } = useCart()
+  const { clearCart, addItem, restaurant: cartRestaurant } = useCart()
   const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [reordering, setReordering] = useState<string | null>(null)
   const [reorderNotice, setReorderNotice] = useState<string | null>(null)
+  const [restaurantSlugs, setRestaurantSlugs] = useState<Map<string, string>>(new Map())
 
   const fetchOrders = useCallback(async () => {
     const localNums: string[] = JSON.parse(localStorage.getItem('yalo_mis_pedidos') || '[]')
@@ -62,7 +63,17 @@ export default function ClientePedidos() {
       .select('*')
       .in('numero_orden', allNums)
       .order('created_at', { ascending: false })
-    if (data) setOrders(data as Order[])
+    if (data) {
+      setOrders(data as Order[])
+      const uniqueIds = [...new Set((data as Order[]).map(o => o.restaurant_id).filter(Boolean))]
+      if (uniqueIds.length > 0) {
+        const { data: rests } = await supabase
+          .from('Restaurants')
+          .select('id, slug')
+          .in('id', uniqueIds)
+        if (rests) setRestaurantSlugs(new Map(rests.map((r: { id: string; slug: string }) => [r.id, r.slug])))
+      }
+    }
     setLoading(false)
   }, [customer])
 
@@ -135,13 +146,16 @@ export default function ClientePedidos() {
 
     setReordering(null)
 
+    const slug = restaurantSlugs.get(order.restaurant_id) ?? ''
+    const menuPath = slug ? `/menu/${slug}?abrirCarrito=1` : '/'
+
     if (skipped > 0) {
       setReorderNotice(`${skipped} platillo${skipped > 1 ? 's' : ''} ya no ${skipped > 1 ? 'están disponibles' : 'está disponible'} y ${skipped > 1 ? 'fueron omitidos' : 'fue omitido'}.`)
       setTimeout(() => {
-        navigate('/menu/mi-tierra?abrirCarrito=1')
+        navigate(menuPath)
       }, 2000)
     } else {
-      navigate('/menu/mi-tierra?abrirCarrito=1')
+      navigate(menuPath)
     }
   }
 
@@ -149,7 +163,7 @@ export default function ClientePedidos() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-[#1A6B3C] text-white px-4 py-4 sticky top-0 z-30">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <Link to="/menu/mi-tierra" className="text-white/70 hover:text-white">←</Link>
+          <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white">←</button>
           <h1 className="font-bold text-lg">Mis pedidos</h1>
         </div>
       </header>
@@ -241,9 +255,12 @@ export default function ClientePedidos() {
               <div className="text-center py-16 text-gray-400">
                 <p className="text-4xl mb-3">🛍</p>
                 <p>Aún no has hecho pedidos desde este dispositivo</p>
-                <Link to="/menu/mi-tierra" className="mt-3 inline-block text-[#1A6B3C] font-medium text-sm hover:underline">
+                <button
+                  onClick={() => navigate(cartRestaurant?.slug ? `/menu/${cartRestaurant.slug}` : '/')}
+                  className="mt-3 inline-block text-[#1A6B3C] font-medium text-sm hover:underline"
+                >
                   Ver menú
-                </Link>
+                </button>
               </div>
             )}
           </>

@@ -22,6 +22,8 @@ export default function PedidoConfirmado() {
   const navigate = useNavigate()
   const [order, setOrder] = useState<Order | null>(null)
   const [tiempoEstimado, setTiempoEstimado] = useState<number>(25)
+  const [restaurantSlug, setRestaurantSlug] = useState<string>('')
+  const [restaurantNombre, setRestaurantNombre] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -47,16 +49,20 @@ export default function PedidoConfirmado() {
 
       const { data: rest } = await supabase
         .from('Restaurants')
-        .select('tiempo_estimado')
+        .select('tiempo_estimado, slug, nombre')
         .eq('id', orderData.restaurant_id)
         .maybeSingle()
 
       setTiempoEstimado(rest?.tiempo_estimado ?? 25)
+      setRestaurantSlug(rest?.slug ?? '')
+      setRestaurantNombre(rest?.nombre ?? '')
       setLoading(false)
     }
 
     load()
   }, [orderId])
+
+  const menuPath = restaurantSlug ? `/menu/${restaurantSlug}` : '/'
 
   if (loading) {
     return (
@@ -70,7 +76,7 @@ export default function PedidoConfirmado() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 text-center">
         <p className="text-gray-500 mb-4">Pedido no encontrado.</p>
-        <button onClick={() => navigate('/menu/mi-tierra')} className="text-[#0F4A2A] font-semibold underline">
+        <button onClick={() => navigate(menuPath)} className="text-[#0F4A2A] font-semibold underline">
           Volver al menú
         </button>
       </div>
@@ -84,7 +90,7 @@ export default function PedidoConfirmado() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="bg-[#0F4A2A] px-4 py-5 text-center">
-        <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">Mi Tierra</p>
+        <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">{restaurantNombre}</p>
       </div>
 
       <div className="flex-1 flex flex-col items-center px-5 pt-8 pb-10 max-w-md mx-auto w-full">
@@ -160,7 +166,7 @@ export default function PedidoConfirmado() {
 
         {/* Secondary CTA */}
         <button
-          onClick={() => navigate('/menu/mi-tierra')}
+          onClick={() => navigate(menuPath)}
           className="w-full text-[#0F4A2A] font-semibold text-base py-3 rounded-2xl active:scale-95 transition-transform"
         >
           Volver al menú

@@ -2,8 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 import type { Order, OrderItem, OrderStatus, Restaurant } from '../../../lib/types'
 
-const HARDCODED_RESTAURANT_ID = '1b991239-7915-4106-b883-8b50897682f8'
-
 interface CardColors {
   bg: string
   borderColor: string
@@ -150,6 +148,7 @@ function printOrder(order: Order): void {
   <div style="text-align:center;font-size:9pt;margin-bottom:4px;">
     <div>Subtotal: $${order.subtotal.toFixed(2)}</div>
     ${order.costo_envio > 0 ? `<div>Env&#237;o: $${order.costo_envio.toFixed(2)}</div>` : ''}
+    ${(order.monto_descuento ?? 0) > 0 ? `<div>Descuento (${order.codigo_descuento ?? ''}): -$${Number(order.monto_descuento).toFixed(2)}</div>` : ''}
     <div style="font-size:15pt;font-weight:900;border-top:2px solid #000;margin-top:3px;padding-top:2px;">TOTAL: $${order.total.toFixed(2)}</div>
   </div>
   ${dash}
@@ -237,17 +236,17 @@ export default function PedidosTab({ restaurant }: Props) {
 
     const channel = supabase
       .channel('orders-channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${HARDCODED_RESTAURANT_ID}` }, payload => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurant.id}` }, payload => {
         const order = payload.new as Order
         if (!knownIds.current.has(order.id)) {
           knownIds.current.add(order.id)
           setOrders(prev => [order, ...prev])
         }
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${HARDCODED_RESTAURANT_ID}` }, payload => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurant.id}` }, payload => {
         setOrders(prev => prev.map(o => o.id === payload.new.id ? payload.new as Order : o))
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${HARDCODED_RESTAURANT_ID}` }, payload => {
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurant.id}` }, payload => {
         setOrders(prev => prev.filter(o => o.id !== payload.old.id))
       })
       .subscribe()
@@ -535,6 +534,9 @@ function OrderCard({ order, now, onAccept, onDecline, onCancel, children }: Card
       {/* Payment summary */}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold" style={{ color: c.subColor }}>
         {order.costo_envio > 0 && <span>Envío ${order.costo_envio.toFixed(2)}</span>}
+        {(order.monto_descuento ?? 0) > 0 && (
+          <span style={{ color: '#15803D' }}>Dto. {order.codigo_descuento} -${Number(order.monto_descuento).toFixed(2)}</span>
+        )}
         <span>Paga ${order.monto_pago.toFixed(2)}</span>
         {order.cambio > 0 && <span className="font-black">Cambio ${order.cambio.toFixed(2)}</span>}
       </div>

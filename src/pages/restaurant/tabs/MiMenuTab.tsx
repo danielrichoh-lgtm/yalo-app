@@ -28,15 +28,11 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
   const logoRef = useRef<HTMLInputElement>(null)
   const photoRef = useRef<HTMLInputElement>(null)
 
-  const getSession = () => JSON.parse(sessionStorage.getItem('restaurant_session') || '{}')
-
   const fetchDishes = async () => {
-    const { id } = getSession()
-    if (!id) return
     const { data } = await supabase
       .from('menu_items')
       .select('*')
-      .eq('restaurant_id', id)
+      .eq('restaurant_id', restaurant.id)
       .order('created_at')
     if (data) setMenuItems(data as MenuItem[])
   }
@@ -214,11 +210,10 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
       ? JSON.stringify(extraItems.filter(e => e.nombre))
       : null
     if (isNewItem) {
-      const restaurantId = getSession().id
       const { data: inserted, error } = await supabase
         .from('menu_items')
         .insert({
-          restaurant_id: restaurantId,
+          restaurant_id: restaurant.id,
           nombre: editingItem.nombre,
           descripcion: editingItem.descripcion ?? '',
           precio: editingItem.precio ?? 0,

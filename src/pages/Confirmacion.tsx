@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { Order } from '../lib/types'
 
 // This page is kept for backward-compat deep links.
@@ -20,9 +20,9 @@ export default function Confirmacion() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="text-center">
         <p className="text-gray-400 mb-4">Redirigiendo...</p>
-        <Link to="/menu/mi-tierra" className="text-[#1A6B3C] font-medium hover:underline">
+        <button onClick={() => navigate(-1)} className="text-[#1A6B3C] font-medium hover:underline">
           Ir al menú
-        </Link>
+        </button>
       </div>
     </div>
   )

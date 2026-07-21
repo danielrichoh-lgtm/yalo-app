@@ -5,8 +5,9 @@ import type { Restaurant } from '../../lib/types'
 import PedidosTab from './tabs/PedidosTab'
 import MiMenuTab from './tabs/MiMenuTab'
 import ResumenTab from './tabs/ResumenTab'
+import DescuentosTab from './tabs/DescuentosTab'
 
-type Tab = 'pedidos' | 'menu' | 'resumen'
+type Tab = 'pedidos' | 'menu' | 'resumen' | 'descuentos'
 
 export default function RestaurantDashboard() {
   const [tab, setTab] = useState<Tab>('pedidos')
@@ -30,6 +31,7 @@ export default function RestaurantDashboard() {
     { key: 'pedidos', label: 'Pedidos' },
     { key: 'menu', label: 'Mi Menú' },
     { key: 'resumen', label: 'Resumen' },
+    { key: 'descuentos', label: 'Descuentos' },
   ]
 
   return (
@@ -73,6 +75,7 @@ export default function RestaurantDashboard() {
         {tab === 'pedidos' && <PedidosTab restaurant={restaurant} />}
         {tab === 'menu' && <MiMenuTab restaurant={restaurant} onUpdate={handleUpdate} />}
         {tab === 'resumen' && <ResumenTab restaurant={restaurant} />}
+        {tab === 'descuentos' && <DescuentosTab restaurant={restaurant} />}
       </main>
     </div>
   )

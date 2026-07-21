@@ -20,6 +20,23 @@ export function ProtectedRestaurantRoute({ children }: { children: ReactNode }) 
   return <>{children}</>
 }
 
+export function ProtectedAdminRoute({ children }: { children: ReactNode }) {
+  const [checking, setChecking] = useState(true)
+  const [allowed, setAllowed] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const stored = sessionStorage.getItem('admin_session')
+      setAllowed(!!session && !!stored)
+      setChecking(false)
+    })
+  }, [])
+
+  if (checking) return null
+  if (!allowed) return <Navigate to="/admin" replace />
+  return <>{children}</>
+}
+
 export function ProtectedCustomerRoute({ children }: { children: ReactNode }) {
   const stored = sessionStorage.getItem('customer')
   if (!stored) return <Navigate to="/cliente/login" replace />
