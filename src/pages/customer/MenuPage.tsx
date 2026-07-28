@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Restaurant, MenuItem, MenuCategoria } from '../../lib/types'
+import type { Restaurant, MenuItem } from '../../lib/types'
 import { MENU_CATEGORIAS } from '../../lib/types'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
@@ -53,9 +53,9 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true)
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null)
   const [cartOpen, setCartOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<MenuCategoria | null>(null)
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const sectionRefs = useRef<Partial<Record<MenuCategoria, HTMLElement | null>>>({})
+  const sectionRefs = useRef<Partial<Record<string, HTMLElement | null>>>({})
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -106,11 +106,15 @@ export default function MenuPage() {
       })
   }, [slug, setRestaurant])
 
-  const visibleCategories = MENU_CATEGORIAS.filter(cat =>
-    items.some(i => (i.categoria ?? 'Comidas') === cat)
-  )
+  const visibleCategories = useMemo(() => {
+    const allCats = Array.from(new Set(items.map(i => i.categoria ?? 'Comidas')))
+    return [
+      ...MENU_CATEGORIAS.filter(c => allCats.includes(c)),
+      ...allCats.filter(c => !MENU_CATEGORIAS.includes(c)).sort((a, b) => a.localeCompare(b, 'es')),
+    ]
+  }, [items])
 
-  const scrollToCategory = (cat: MenuCategoria) => {
+  const scrollToCategory = (cat: string) => {
     const el = sectionRefs.current[cat]
     if (el) {
       const offset = 100

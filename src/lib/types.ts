@@ -75,8 +75,8 @@ export interface Customer {
   created_at: string
 }
 
-export type MenuCategoria = 'Desayunos' | 'Comidas' | 'Antojitos mexicanos'
-export const MENU_CATEGORIAS: MenuCategoria[] = ['Desayunos', 'Comidas', 'Antojitos mexicanos']
+export type MenuCategoria = string
+export const MENU_CATEGORIAS: string[] = ['Desayunos', 'Comidas', 'Antojitos mexicanos']
 
 export interface MenuItem {
   id: string

@@ -260,8 +260,9 @@ export default function PedidosTab({ restaurant }: Props) {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o))
   }
 
-  const deleteOrder = async (id: string) => {
-    await supabase.from('orders').delete().eq('id', id)
+  const [archivingId, setArchivingId] = useState<string | null>(null)
+  const archiveOrder = async (id: string) => {
+    await supabase.from('orders').update({ archivado: true }).eq('id', id)
     setOrders(prev => prev.filter(o => o.id !== id))
   }
 
@@ -366,8 +367,8 @@ export default function PedidosTab({ restaurant }: Props) {
                     style={{ backgroundColor: 'rgba(0,0,0,0.12)', color: '#166534' }}>
                     Entregado ✓
                   </span>
-                  <button onClick={() => deleteOrder(order.id)} className="text-sm ml-auto font-medium" style={{ color: '#6B7280' }}>
-                    Eliminar
+                  <button onClick={() => setArchivingId(order.id)} className="text-sm ml-auto font-medium" style={{ color: '#6B7280' }}>
+                    Ocultar
                   </button>
                 </div>
               </OrderCard>
@@ -400,6 +401,34 @@ export default function PedidosTab({ restaurant }: Props) {
         <div className="text-center py-16 text-gray-400">
           <p className="text-5xl mb-3">🍽</p>
           <p className="text-lg">No hay pedidos aún</p>
+        </div>
+      )}
+
+      {archivingId && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center sm:px-4" onClick={() => setArchivingId(null)}>
+          <div
+            className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-5 space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-bold text-gray-900 text-lg leading-snug">¿Ocultar este pedido de la vista?</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Seguirá contando en tus métricas y en el historial del cliente. No se borra ninguna información.
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setArchivingId(null)}
+                className="flex-1 py-3 rounded-xl font-semibold text-base border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => { const id = archivingId; setArchivingId(null); await archiveOrder(id) }}
+                className="flex-1 py-3 rounded-xl font-bold text-base text-white bg-[#1A6B3C] hover:bg-[#155a32] transition-colors"
+              >
+                Sí, ocultar
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

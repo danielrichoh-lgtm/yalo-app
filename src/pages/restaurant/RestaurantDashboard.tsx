@@ -6,8 +6,10 @@ import PedidosTab from './tabs/PedidosTab'
 import MiMenuTab from './tabs/MiMenuTab'
 import ResumenTab from './tabs/ResumenTab'
 import DescuentosTab from './tabs/DescuentosTab'
+import NuevoPedidoTab from './tabs/NuevoPedidoTab'
+import ClientesTab from './tabs/ClientesTab'
 
-type Tab = 'pedidos' | 'menu' | 'resumen' | 'descuentos'
+type Tab = 'pedidos' | 'nuevo' | 'menu' | 'resumen' | 'descuentos' | 'clientes'
 
 export default function RestaurantDashboard() {
   const [tab, setTab] = useState<Tab>('pedidos')
@@ -15,6 +17,9 @@ export default function RestaurantDashboard() {
     return JSON.parse(sessionStorage.getItem('restaurant_session')!)
   })
   const navigate = useNavigate()
+
+  const rol = sessionStorage.getItem('restaurant_rol') ?? 'admin'
+  const isAdmin = rol === 'admin' || rol === 'super_admin'
 
   const handleUpdate = (updated: Restaurant) => {
     setRestaurant(updated)
@@ -29,9 +34,13 @@ export default function RestaurantDashboard() {
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'pedidos', label: 'Pedidos' },
-    { key: 'menu', label: 'Mi Menú' },
-    { key: 'resumen', label: 'Resumen' },
-    { key: 'descuentos', label: 'Descuentos' },
+    { key: 'nuevo', label: '+ Pedido' },
+    ...(isAdmin ? [
+      { key: 'menu' as Tab, label: 'Mi Menú' },
+      { key: 'resumen' as Tab, label: 'Resumen' },
+      { key: 'descuentos' as Tab, label: 'Descuentos' },
+      { key: 'clientes' as Tab, label: 'Clientes' },
+    ] : []),
   ]
 
   return (
@@ -58,12 +67,12 @@ export default function RestaurantDashboard() {
       </header>
 
       <div className="bg-white border-b border-gray-100 sticky top-[65px] z-20">
-        <div className="max-w-2xl mx-auto flex">
+        <div className="max-w-2xl mx-auto flex overflow-x-auto">
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-[#1A6B3C] text-[#1A6B3C]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 min-w-[70px] py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${tab === t.key ? 'border-[#1A6B3C] text-[#1A6B3C]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
             >
               {t.label}
             </button>
@@ -73,9 +82,11 @@ export default function RestaurantDashboard() {
 
       <main className="max-w-2xl mx-auto px-4 py-5">
         {tab === 'pedidos' && <PedidosTab restaurant={restaurant} />}
-        {tab === 'menu' && <MiMenuTab restaurant={restaurant} onUpdate={handleUpdate} />}
-        {tab === 'resumen' && <ResumenTab restaurant={restaurant} />}
-        {tab === 'descuentos' && <DescuentosTab restaurant={restaurant} />}
+        {tab === 'nuevo' && <NuevoPedidoTab restaurant={restaurant} />}
+        {tab === 'menu' && isAdmin && <MiMenuTab restaurant={restaurant} onUpdate={handleUpdate} />}
+        {tab === 'resumen' && isAdmin && <ResumenTab restaurant={restaurant} />}
+        {tab === 'descuentos' && isAdmin && <DescuentosTab restaurant={restaurant} />}
+        {tab === 'clientes' && isAdmin && <ClientesTab restaurant={restaurant} />}
       </main>
     </div>
   )

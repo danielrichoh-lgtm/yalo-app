@@ -14,7 +14,7 @@ const generateSlug = (name: string) =>
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
 
-const EMPTY_NEW_FORM = { nombre: '', slug: '', direccion: '', telefono: '' }
+const EMPTY_NEW_FORM = { nombre: '', slug: '', direccion: '', telefono: '', accessEmail: '', accessPassword: '' }
 const EMPTY_USER_FORM = { email: '', password: '', rol: 'admin' }
 
 export default function AdminDashboard() {
@@ -27,8 +27,12 @@ export default function AdminDashboard() {
   // New restaurant form
   const [showNewForm, setShowNewForm] = useState(false)
   const [newForm, setNewForm] = useState(EMPTY_NEW_FORM)
+  const [slugTouched, setSlugTouched] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [pendingRestaurant, setPendingRestaurant] = useState<Restaurant | null>(null)
+  const [linkError, setLinkError] = useState('')
+  const [linking, setLinking] = useState(false)
 
   // Toggle loading per restaurant
   const [toggling, setToggling] = useState<string | null>(null)
@@ -69,13 +73,36 @@ export default function AdminDashboard() {
   }
 
   const handleNombreChange = (nombre: string) => {
-    setNewForm(f => ({ ...f, nombre, slug: generateSlug(nombre) }))
+    setNewForm(f => ({ ...f, nombre, ...(slugTouched ? {} : { slug: generateSlug(nombre) }) }))
+  }
+
+  const linkAccess = async (restaurantId: string, email: string, password: string): Promise<{ ok: boolean; error?: string; uid?: string }> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return { ok: false, error: 'Sesión expirada — vuelve a iniciar sesión' }
+    const resp = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-restaurant-user`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'Apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email, password, restaurant_id: restaurantId, rol: 'admin' }),
+      }
+    )
+    const result = await resp.json()
+    if (!resp.ok || result.error) return { ok: false, error: result.error ?? 'Error al crear el usuario' }
+    return { ok: true, uid: result.user_id }
   }
 
   const createRestaurant = async () => {
     if (!newForm.nombre.trim()) { setSaveError('El nombre es requerido'); return }
     if (!newForm.slug.trim()) { setSaveError('El slug es requerido'); return }
-    setSaving(true); setSaveError('')
+    if (!newForm.accessEmail.trim() || !newForm.accessPassword) { setSaveError('Completa la sección Acceso (email y contraseña)'); return }
+    if (newForm.accessPassword.length < 6) { setSaveError('La contraseña debe tener al menos 6 caracteres'); return }
+    setSaving(true); setSaveError(''); setLinkError(''); setPendingRestaurant(null)
+
     const { data, error } = await supabase
       .from('Restaurants')
       .insert({
@@ -83,8 +110,7 @@ export default function AdminDashboard() {
         slug: newForm.slug.trim(),
         direccion: newForm.direccion.trim(),
         telefono: newForm.telefono.trim(),
-        email: '',
-        password: '',
+        email: newForm.accessEmail.trim(),
         servicio_activo: true,
         hora_apertura: '08:00',
         hora_cierre: '22:00',
@@ -101,11 +127,36 @@ export default function AdminDashboard() {
       })
       .select()
       .single()
+
+    if (error) { setSaveError(error.message); setSaving(false); return }
+    const created = data as Restaurant
+    setRestaurants(prev => [created, ...prev])
+
+    const link = await linkAccess(created.id, newForm.accessEmail.trim(), newForm.accessPassword)
     setSaving(false)
-    if (error) { setSaveError(error.message); return }
-    setRestaurants(prev => [data as Restaurant, ...prev])
-    setShowNewForm(false)
-    setNewForm(EMPTY_NEW_FORM)
+    if (link.ok) {
+      setShowNewForm(false)
+      setNewForm(EMPTY_NEW_FORM)
+      setSlugTouched(false)
+      return
+    }
+    setLinkError(link.error ?? 'No se pudo vincular el acceso')
+    setPendingRestaurant(created)
+  }
+
+  const retryLink = async () => {
+    if (!pendingRestaurant) return
+    setLinking(true); setLinkError('')
+    const link = await linkAccess(pendingRestaurant.id, newForm.accessEmail.trim(), newForm.accessPassword)
+    setLinking(false)
+    if (link.ok) {
+      setShowNewForm(false)
+      setNewForm(EMPTY_NEW_FORM)
+      setSlugTouched(false)
+      setPendingRestaurant(null)
+    } else {
+      setLinkError(link.error ?? 'Sigue sin poder vincularse')
+    }
   }
 
   const openAccesos = async (r: Restaurant) => {
@@ -198,7 +249,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold">Restaurantes ({restaurants.length})</h1>
           <button
-            onClick={() => { setShowNewForm(v => !v); setSaveError('') }}
+            onClick={() => { setShowNewForm(v => !v); setSaveError(''); setLinkError(''); setPendingRestaurant(null); setSlugTouched(false) }}
             className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
             style={{
               backgroundColor: showNewForm ? 'rgba(255,255,255,0.08)' : '#ffffff',
@@ -230,7 +281,7 @@ export default function AdminDashboard() {
                 <input
                   type="text"
                   value={newForm.slug}
-                  onChange={e => setNewForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                  onChange={e => { setSlugTouched(true); setNewForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })) }}
                   placeholder="mi-restaurante"
                   className="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-white/20 font-mono"
                   style={{ backgroundColor: '#1f2937', border: '1px solid rgba(255,255,255,0.10)' }}
@@ -259,11 +310,66 @@ export default function AdminDashboard() {
                 />
               </div>
             </div>
+            {/* Acceso section */}
+            <div
+              className="rounded-xl p-4 space-y-3"
+              style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Acceso (login del restaurante)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Correo *</label>
+                  <input
+                    type="email"
+                    value={newForm.accessEmail}
+                    onChange={e => setNewForm(f => ({ ...f, accessEmail: e.target.value }))}
+                    placeholder="restaurante@ejemplo.com"
+                    className="w-full rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+                    style={{ backgroundColor: '#1f2937', border: '1px solid rgba(255,255,255,0.08)' }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Contraseña *</label>
+                  <input
+                    type="text"
+                    value={newForm.accessPassword}
+                    onChange={e => setNewForm(f => ({ ...f, accessPassword: e.target.value }))}
+                    placeholder="mín. 6 caracteres"
+                    className="w-full rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+                    style={{ backgroundColor: '#1f2937', border: '1px solid rgba(255,255,255,0.08)' }}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-600">
+                Estas credenciales sirven para iniciar sesión en /restaurant/login. La contraseña se guarda cifrada en Supabase Auth, no en la tabla del restaurante.
+              </p>
+            </div>
+
             {saveError && (
               <p className="text-red-400 text-sm px-3 py-2 rounded-lg" style={{ backgroundColor: 'rgba(220,38,38,0.10)' }}>
                 {saveError}
               </p>
             )}
+
+            {pendingRestaurant && (
+              <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)' }}>
+                <p className="text-sm text-amber-300 font-semibold">
+                  Restaurante creado, pero falta vincular el acceso
+                </p>
+                <p className="text-xs text-amber-200/70">
+                  {linkError} Puedes reintentar la vinculación ahora, o hacerlo después desde el botón «Accesos» de este restaurante.
+                </p>
+                <button
+                  onClick={retryLink}
+                  disabled={linking}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 disabled:opacity-50 transition-opacity"
+                  style={{ backgroundColor: '#fbbf24' }}
+                >
+                  {linking ? 'Vinculando...' : 'Reintentar vinculación'}
+                </button>
+              </div>
+            )}
+
             <div className="flex justify-end">
               <button
                 onClick={createRestaurant}
@@ -383,6 +489,8 @@ export default function AdminDashboard() {
                         style={
                           u.rol === 'super_admin'
                             ? { backgroundColor: 'rgba(251,191,36,0.15)', color: '#fbbf24' }
+                            : u.rol === 'operador'
+                            ? { backgroundColor: 'rgba(52,199,118,0.15)', color: '#34C776' }
                             : { backgroundColor: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }
                         }
                       >
@@ -432,7 +540,8 @@ export default function AdminDashboard() {
                   className="w-full rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/20"
                   style={{ backgroundColor: '#1f2937', border: '1px solid rgba(255,255,255,0.08)' }}
                 >
-                  <option value="admin">admin — Acceso al dashboard de este restaurante</option>
+                  <option value="admin">Admin — Acceso completo (pedidos, menú, métricas, clientes)</option>
+                  <option value="operador">Operador — Solo pedidos</option>
                   <option value="super_admin">super_admin — Acceso al panel admin completo</option>
                 </select>
               </div>

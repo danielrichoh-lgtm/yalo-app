@@ -24,7 +24,7 @@ export default function RestaurantLogin() {
 
     const { data: assignment } = await supabase
       .from('restaurant_users')
-      .select('restaurant_id')
+      .select('restaurant_id, rol')
       .eq('user_id', data.user.id)
       .maybeSingle()
 
@@ -46,6 +46,7 @@ export default function RestaurantLogin() {
       return setError('No se encontró el restaurante asignado')
     }
     sessionStorage.setItem('restaurant_session', JSON.stringify(restaurant))
+    sessionStorage.setItem('restaurant_rol', assignment?.rol ?? 'admin')
     window.location.href = '/restaurant/dashboard'
   }
 

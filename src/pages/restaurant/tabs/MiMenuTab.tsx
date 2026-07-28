@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { supabase } from '../../../lib/supabase'
-import type { Restaurant, MenuItem, VarianteGrupo, VarianteOpcion, DishExtra, MenuCategoria } from '../../../lib/types'
+import type { Restaurant, MenuItem, VarianteGrupo, VarianteOpcion, DishExtra } from '../../../lib/types'
 import { MENU_CATEGORIAS } from '../../../lib/types'
 
 interface Props { restaurant: Restaurant; onUpdate: (r: Restaurant) => void }
@@ -385,14 +385,20 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
           </button>
         </div>
         <div className="space-y-4">
-          {MENU_CATEGORIAS.map(cat => {
-            const catItems = menuItems.filter(i => (i.categoria ?? 'Comidas') === cat)
-            if (catItems.length === 0) return null
-            return (
-              <div key={cat}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{cat}</p>
-                <div className="space-y-2">
-                  {catItems.map(item => (
+          {(() => {
+            const allCats = Array.from(new Set(menuItems.map(i => i.categoria ?? 'Comidas')))
+            const orderedCats = [
+              ...MENU_CATEGORIAS.filter(c => allCats.includes(c)),
+              ...allCats.filter(c => !MENU_CATEGORIAS.includes(c)).sort((a, b) => a.localeCompare(b, 'es')),
+            ]
+            return orderedCats.map(cat => {
+              const catItems = menuItems.filter(i => (i.categoria ?? 'Comidas') === cat)
+              if (catItems.length === 0) return null
+              return (
+                <div key={cat}>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{cat}</p>
+                  <div className="space-y-2">
+                    {catItems.map(item => (
                     <div key={item.id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl">
                       {item.foto ? (
                         <img src={item.foto} alt={item.nombre} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
@@ -424,7 +430,8 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                 </div>
               </div>
             )
-          })}
+            })
+          })()}
           {menuItems.length === 0 && (
             <p className="text-sm text-gray-400 text-center py-4">Sin platillos — agrega uno arriba</p>
           )}
@@ -456,15 +463,43 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
               placeholder="Precio"
               className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
             />
-            <select
-              value={editingItem.categoria ?? 'Comidas'}
-              onChange={e => setEditingItem(p => ({ ...p, categoria: e.target.value as MenuCategoria }))}
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C] bg-white"
-            >
-              {MENU_CATEGORIAS.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+            {(() => {
+              const existingCats = Array.from(new Set(menuItems.map(i => i.categoria ?? 'Comidas')))
+              const allCats = [
+                ...MENU_CATEGORIAS.filter(c => existingCats.includes(c)),
+                ...existingCats.filter(c => !MENU_CATEGORIAS.includes(c)).sort((a, b) => a.localeCompare(b, 'es')),
+              ]
+              const current = editingItem.categoria ?? ''
+              const isKnown = allCats.includes(current) && current !== ''
+              return (
+                <>
+                  <select
+                    value={isKnown ? current : '__custom__'}
+                    onChange={e => {
+                      if (e.target.value === '__custom__') {
+                        setEditingItem(p => ({ ...p, categoria: '' }))
+                      } else {
+                        setEditingItem(p => ({ ...p, categoria: e.target.value }))
+                      }
+                    }}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C] bg-white"
+                  >
+                    {allCats.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                    <option value="__custom__">+ Nueva categoría...</option>
+                  </select>
+                  {!isKnown && (
+                    <input
+                      value={current}
+                      onChange={e => setEditingItem(p => ({ ...p, categoria: e.target.value }))}
+                      placeholder="Escribe el nombre de la categoría (ej. Bebidas)"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                    />
+                  )}
+                </>
+              )
+            })()}
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 {editingItem.foto ? (
