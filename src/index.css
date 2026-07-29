@@ -3,6 +3,30 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Prevent text selection / native callout on the order summary so an
+   imprecise tap on mobile doesn't trigger the text-selection menu
+   (which covers the confirm button on Android). */
+.checkout-summary,
+.checkout-summary * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Keep the confirm button above any overlay. */
+.confirm-button {
+  position: relative;
+  z-index: 20;
+}
+
+/* When the confirm button is fixed at the bottom of the screen, respect
+   the iPhone home-indicator / gesture bar so it isn't hidden under it. */
+.confirm-button-fixed {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
 /* Customer-facing base typography — prevents needing to pinch-zoom */
 html { font-size: 16px; }
 body { line-height: 1.55; overflow-x: hidden; }

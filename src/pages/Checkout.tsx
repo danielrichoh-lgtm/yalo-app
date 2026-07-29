@@ -654,7 +654,7 @@ export default function Checkout() {
         </div>
 
         {/* BLOQUE 6 — RESUMEN DEL PEDIDO */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div className="checkout-summary bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <h2 className="font-bold text-gray-900 text-lg mb-3">Resumen del pedido</h2>
           <div className="space-y-2 mb-3">
             {items.map((item, idx) => {
@@ -711,9 +711,9 @@ export default function Checkout() {
         <button
           type="submit"
           disabled={loading || belowTotal}
-          className="w-full bg-[#1A6B3C] text-white py-4 rounded-xl font-bold text-base hover:bg-[#155a32] disabled:opacity-60 transition-colors"
+          className="confirm-button w-full bg-[#1A6B3C] text-white py-4 rounded-xl font-bold text-base hover:bg-[#155a32] disabled:opacity-60 transition-colors"
         >
-          {loading ? 'Enviando pedido...' : `Confirmar pedido · $${orderTotal.toFixed(2)}`}
+          {loading ? 'Enviando pedido...' : `Confirmar pedido · ${orderTotal.toFixed(2)}`}
         </button>
       </form>
 
