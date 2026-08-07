@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 import type { Order, OrderItem, OrderStatus, Restaurant } from '../../../lib/types'
-
 interface CardColors {
   bg: string
   borderColor: string
@@ -492,6 +491,11 @@ function OrderCard({ order, now, onAccept, onDecline, onCancel, children }: Card
           <span className="text-sm px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: c.mutedBg, color: c.textColor }}>
             {order.delivery_type === 'domicilio' ? '🛵 Domicilio' : '🏪 Recoger'}
           </span>
+          {order.canal === 'telefono' && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">
+              📞 Teléfono
+            </span>
+          )}
         </div>
         <div className="text-right shrink-0">
           <p className="text-3xl font-black leading-none" style={{ color: c.textColor }}>

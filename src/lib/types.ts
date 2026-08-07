@@ -147,6 +147,7 @@ export interface Order {
   archivado: boolean
   codigo_descuento?: string | null
   monto_descuento?: number
+  canal?: string
   created_at: string
 }
 

@@ -80,9 +80,13 @@ export default function RestaurantDashboard() {
         </div>
       </div>
 
-      <main className="max-w-2xl mx-auto px-4 py-5">
+      <main className={tab === 'nuevo' ? 'px-0 py-0' : 'max-w-2xl mx-auto px-4 py-5'}>
         {tab === 'pedidos' && <PedidosTab restaurant={restaurant} />}
-        {tab === 'nuevo' && <NuevoPedidoTab restaurant={restaurant} />}
+        {tab === 'nuevo' && (
+          <div className="h-[calc(100vh-113px)]">
+            <NuevoPedidoTab restaurant={restaurant} />
+          </div>
+        )}
         {tab === 'menu' && isAdmin && <MiMenuTab restaurant={restaurant} onUpdate={handleUpdate} />}
         {tab === 'resumen' && isAdmin && <ResumenTab restaurant={restaurant} />}
         {tab === 'descuentos' && isAdmin && <DescuentosTab restaurant={restaurant} />}

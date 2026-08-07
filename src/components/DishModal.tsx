@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 interface Props {
   dish: MenuItem
   onClose: () => void
+  onAdd?: (item: CartItem) => void
 }
 
 function parseVariantes(raw: string | null | undefined): VarianteGrupo[] {
@@ -40,7 +41,7 @@ function effectiveMin(g: VarianteGrupo): number {
   return g.min ?? 1
 }
 
-export default function DishModal({ dish, onClose }: Props) {
+export default function DishModal({ dish, onClose, onAdd }: Props) {
   const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
   const [nota, setNota] = useState('')
@@ -179,7 +180,11 @@ export default function DishModal({ dish, onClose }: Props) {
       extras_seleccionados: selectedExtraList.length > 0 ? selectedExtraList : undefined,
       variantes_precio: selectedOptionsCost > 0 ? selectedOptionsCost : undefined,
     }
-    addItem(item)
+    if (onAdd) {
+      onAdd(item)
+    } else {
+      addItem(item)
+    }
     onClose()
   }
 

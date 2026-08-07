@@ -222,6 +222,11 @@ function OrderHistoryCard({ order }: { order: Order }) {
           <span className="text-sm px-2 py-0.5 rounded-full font-bold text-gray-900" style={{ backgroundColor: 'rgba(0,0,0,0.10)' }}>
             {order.delivery_type === 'domicilio' ? '🛵 Domicilio' : '🏪 Recoger'}
           </span>
+          {order.canal === 'telefono' && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">
+              📞 Teléfono
+            </span>
+          )}
         </div>
         <div className="text-right shrink-0">
           <p className="text-3xl font-black leading-none text-gray-900">${order.total.toFixed(0)}</p>
