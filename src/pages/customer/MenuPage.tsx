@@ -339,9 +339,7 @@ export default function MenuPage() {
 
       <footer className="max-w-[1040px] mx-auto px-4 py-8 text-center">
         <a
-          href="https://holayalo.mx"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/"
           className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
         >
           <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#2ECC71' }} />
