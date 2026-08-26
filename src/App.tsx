@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRestaurantRoute, ProtectedAdminRoute } from './components/ProtectedRoute'
@@ -30,7 +30,7 @@ export default function App() {
         <CartProvider>
           <RestaurantBootstrap />
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={window.location.hostname === 'mitierra.holayalo.mx' ? <Navigate to="/menu/mi-tierra" replace /> : <LandingPage />} />
             <Route path="/restaurant/login" element={<RestaurantLogin />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/onboarding" element={<OnboardingWizard />} />
