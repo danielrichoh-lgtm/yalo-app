@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #111111;
+  --background: #F7F7F5;
+  --surface: #FFFFFF;
+  --muted: #6B7280;
+  --border: #E5E7EB;
+  --yalo-primary: #1E5B4F;
+  --success: #1E9E63;
+  --danger: #DC2626;
+  --restaurant-accent: #1E5B4F;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+html { font-size: 16px; }
+body { line-height: 1.55; overflow-x: hidden; font-family: 'Inter', system-ui, sans-serif; }
+
+h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+.font-display { font-family: 'Playfair Display', serif; }
+.font-body { font-family: 'Inter', system-ui, sans-serif; }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-ticket,
+  #print-ticket * {
+    visibility: visible;
+  }
+  #print-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm;
+  }
+}
