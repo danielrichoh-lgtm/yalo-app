@@ -44,7 +44,7 @@ export default function CartDrawer({ onClose }: Props) {
   const faltante = Math.max(0, pedidoMinimo - total)
 
   const showPickup = restaurant?.pickup_activo
-  const showDomicilio = restaurant?.repartidor_propio || restaurant?.repartidor_externo
+  const showDomicilio = restaurant?.repartidor_propio
 
   const handleContinue = () => {
     onClose()

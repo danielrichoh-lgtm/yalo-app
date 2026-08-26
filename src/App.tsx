@@ -60,7 +60,7 @@ export default function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/confirmacion" element={<Confirmacion />} />
             <Route path="/pedido/confirmado/:orderId" element={<PedidoConfirmado />} />
-            <Route path="/pedido/:numeroOrden" element={<PedidoTracking />} />
+            <Route path="/pedido/:orderId" element={<PedidoTracking />} />
             <Route path="/restaurant/recuperar" element={<RestaurantRecuperar />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>

@@ -288,7 +288,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
       {/* Delivery config */}
       <section className="bg-white rounded-xl border border-gray-100 p-4">
         <h3 className="font-bold text-gray-900 mb-4">Configuración de entrega</h3>
-        {([['pickup_activo', 'Recoger en local'], ['repartidor_propio', 'Repartidor propio'], ['repartidor_externo', 'Repartidor externo']] as [keyof Restaurant, string][]).map(([key, label]) => (
+        {([['pickup_activo', 'Recoger en local'], ['repartidor_propio', 'Repartidor propio']] as [keyof Restaurant, string][]).map(([key, label]) => (
           <div key={key} className="flex items-center justify-between py-2">
             <p className="text-sm text-gray-800">{label}</p>
             <button

@@ -33,7 +33,7 @@ function formatAddress(order: Order): string | null {
 }
 
 export default function PedidoTracking() {
-  const { numeroOrden } = useParams<{ numeroOrden: string }>()
+  const { orderId } = useParams<{ orderId: string }>()
   const navigate = useNavigate()
   const location = useLocation()
   const isNew = (location.state as { isNew?: boolean } | null)?.isNew === true
@@ -44,18 +44,15 @@ export default function PedidoTracking() {
   const [restaurantSlug, setRestaurantSlug] = useState<string>('')
 
   useEffect(() => {
-    if (!numeroOrden) return
+    if (!orderId) return
     supabase
-      .from('orders')
-      .select('*')
-      .eq('numero_orden', numeroOrden)
-      .single()
+      .rpc('get_order_by_id', { p_order_id: orderId })
       .then(({ data, error }) => {
         if (error) console.error('[PedidoTracking] fetch error:', error.message)
-        if (data) setOrder(data as Order)
+        if (data && (data as Order[]).length > 0) setOrder((data as Order[])[0])
         setLoading(false)
       })
-  }, [numeroOrden])
+  }, [orderId])
 
   useEffect(() => {
     if (!order?.restaurant_id) return

@@ -8,8 +8,8 @@ export default function Confirmacion() {
   const order = state?.order as Order | undefined
 
   useEffect(() => {
-    if (order?.numero_orden) {
-      navigate(`/pedido/${order.numero_orden}`, { replace: true, state: { isNew: true } })
+    if (order?.id) {
+      navigate(`/pedido/${order.id}`, { replace: true, state: { isNew: true } })
     }
   }, [order, navigate])
 

@@ -190,7 +190,7 @@ export default function ClientePedidos() {
                       <div className="flex justify-between">
                         <div>
                           <Link
-                            to={`/pedido/${order.numero_orden}`}
+                            to={`/pedido/${order.id}`}
                             className="font-bold hover:underline text-base"
                             style={{ color: 'var(--yalo-primary)' }}
                           >
