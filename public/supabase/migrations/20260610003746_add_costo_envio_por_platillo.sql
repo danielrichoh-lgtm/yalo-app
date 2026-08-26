@@ -1,1 +1,0 @@
-ALTER TABLE "Restaurants" ADD COLUMN IF NOT EXISTS costo_envio_por_platillo integer DEFAULT 0;

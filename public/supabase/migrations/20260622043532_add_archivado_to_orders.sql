@@ -1,1 +1,0 @@
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS archivado boolean NOT NULL DEFAULT false;
