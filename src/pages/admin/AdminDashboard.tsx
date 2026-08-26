@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import type { Restaurant, RestaurantUser } from '../../lib/types'
+import type { Restaurant, RestaurantUser, RestaurantEstado } from '../../lib/types'
 import DiscountCodesSection from './DiscountCodesSection'
 
 const generateSlug = (name: string) =>
@@ -70,6 +70,31 @@ export default function AdminDashboard() {
     await supabase.from('Restaurants').update({ activo: next }).eq('id', r.id)
     setRestaurants(prev => prev.map(x => x.id === r.id ? { ...x, activo: next } : x))
     setToggling(null)
+  }
+
+  const approveRestaurant = async (r: Restaurant) => {
+    setToggling(r.id)
+    await supabase.from('Restaurants').update({ estado: 'active' }).eq('id', r.id)
+    setRestaurants(prev => prev.map(x => x.id === r.id ? { ...x, estado: 'active' } : x))
+    setToggling(null)
+  }
+
+  const estadoLabel: Record<RestaurantEstado, string> = {
+    draft: 'Draft',
+    pending_approval: 'Pendiente',
+    trial: 'Trial',
+    active: 'Activo',
+    free: 'Free',
+    suspended: 'Suspendido',
+  }
+
+  const estadoStyle: Record<RestaurantEstado, { bg: string; color: string }> = {
+    draft: { bg: 'rgba(251,191,36,0.15)', color: '#fbbf24' },
+    pending_approval: { bg: 'rgba(251,191,36,0.15)', color: '#fbbf24' },
+    trial: { bg: 'rgba(99,102,241,0.15)', color: '#a5b4fc' },
+    active: { bg: 'rgba(46,204,113,0.15)', color: '#2ECC71' },
+    free: { bg: 'rgba(255,255,255,0.06)', color: '#9ca3af' },
+    suspended: { bg: 'rgba(220,38,38,0.15)', color: '#f87171' },
   }
 
   const handleNombreChange = (nombre: string) => {
@@ -230,7 +255,7 @@ export default function AdminDashboard() {
               <span className="text-white text-sm font-black">Y</span>
             </div>
             <div>
-              <p className="font-bold text-sm leading-tight">Yalo Admin</p>
+              <p className="font-bold text-sm leading-tight" style={{ fontFamily: '"Playfair Display", serif' }}>Yalo Admin</p>
               <p className="text-gray-400 text-xs">{adminEmail}</p>
             </div>
           </div>
@@ -400,6 +425,14 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-sm text-white">{r.nombre}</p>
                     <span className="font-mono text-xs text-gray-400 bg-white/5 px-2 py-0.5 rounded">/menu/{r.slug}</span>
+                    {r.estado && (
+                      <span
+                        className="text-xs font-semibold px-2 py-0.5 rounded"
+                        style={{ backgroundColor: estadoStyle[r.estado].bg, color: estadoStyle[r.estado].color }}
+                      >
+                        {estadoLabel[r.estado]}
+                      </span>
+                    )}
                   </div>
                   {(r.direccion || r.telefono) && (
                     <p className="text-xs text-gray-500 mt-0.5 truncate">
@@ -418,13 +451,24 @@ export default function AdminDashboard() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
                     style={
                       r.activo !== false
-                        ? { backgroundColor: 'rgba(52,199,118,0.12)', color: '#34C776' }
+                        ? { backgroundColor: 'rgba(46,204,113,0.12)', color: '#2ECC71' }
                         : { backgroundColor: 'rgba(255,255,255,0.06)', color: '#6b7280' }
                     }
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${r.activo !== false ? 'bg-[#34C776]' : 'bg-gray-500'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${r.activo !== false ? 'bg-[#2ECC71]' : 'bg-gray-500'}`} />
                     {toggling === r.id ? '...' : r.activo !== false ? 'Activo' : 'Inactivo'}
                   </button>
+                  {/* Aprobar (solo draft) */}
+                  {r.estado === 'draft' && (
+                    <button
+                      onClick={() => approveRestaurant(r)}
+                      disabled={toggling === r.id}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-900 disabled:opacity-50 transition-opacity"
+                      style={{ backgroundColor: '#fbbf24' }}
+                    >
+                      {toggling === r.id ? '...' : 'Aprobar'}
+                    </button>
+                  )}
                   {/* Accesos */}
                   <button
                     onClick={() => openAccesos(r)}
@@ -490,7 +534,7 @@ export default function AdminDashboard() {
                           u.rol === 'super_admin'
                             ? { backgroundColor: 'rgba(251,191,36,0.15)', color: '#fbbf24' }
                             : u.rol === 'operador'
-                            ? { backgroundColor: 'rgba(52,199,118,0.15)', color: '#34C776' }
+                            ? { backgroundColor: 'rgba(46,204,113,0.15)', color: '#2ECC71' }
                             : { backgroundColor: 'rgba(99,102,241,0.15)', color: '#a5b4fc' }
                         }
                       >
@@ -552,7 +596,7 @@ export default function AdminDashboard() {
                 </p>
               )}
               {userSuccess && (
-                <p className="text-green-400 text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: 'rgba(52,199,118,0.10)' }}>
+                <p className="text-green-400 text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: 'rgba(46,204,113,0.10)' }}>
                   {userSuccess}
                 </p>
               )}

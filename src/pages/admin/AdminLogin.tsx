@@ -49,7 +49,7 @@ export default function AdminLogin() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 mb-4 border border-white/10">
             <span className="text-white text-xl font-black">Y</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Yalo Admin</h1>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: '"Playfair Display", serif' }}>Yalo Admin</h1>
           <p className="text-gray-400 text-sm mt-1">Panel de super administración</p>
         </div>
 

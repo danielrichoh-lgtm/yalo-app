@@ -1,1 +1,0 @@
-ALTER TABLE "Restaurants" ADD COLUMN IF NOT EXISTS tiempo_estimado integer;

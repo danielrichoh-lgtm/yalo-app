@@ -163,7 +163,7 @@ export default function DescuentosTab({ restaurant }: Props) {
         <h2 className="font-bold text-gray-900 text-lg">Descuentos ({codes.length})</h2>
         <button
           onClick={openNew}
-          className="px-4 py-2 rounded-xl bg-[#1A6B3C] text-white text-sm font-bold transition-opacity hover:opacity-90"
+          className="px-4 py-2 rounded-xl bg-[#1E5B4F] text-white text-sm font-bold transition-opacity hover:opacity-90"
         >
           + Nuevo código
         </button>
@@ -200,7 +200,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                     </span>
                     <span
                       className="text-xs font-bold px-2 py-1 rounded-lg"
-                      style={{ backgroundColor: 'rgba(26,107,60,0.10)', color: '#1A6B3C' }}
+                      style={{ backgroundColor: 'rgba(30,91,79,0.10)', color: '#1E5B4F' }}
                     >
                       {code.tipo === 'porcentaje' ? `${code.valor}%` : `$${code.valor}`}
                       {' '}descuento
@@ -212,11 +212,11 @@ export default function DescuentosTab({ restaurant }: Props) {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 shrink-0"
                     style={
                       code.activo
-                        ? { backgroundColor: 'rgba(26,107,60,0.10)', color: '#1A6B3C' }
+                        ? { backgroundColor: 'rgba(30,91,79,0.10)', color: '#1E5B4F' }
                         : { backgroundColor: '#f3f4f6', color: '#6b7280' }
                     }
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${code.activo ? 'bg-[#1A6B3C]' : 'bg-gray-400'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${code.activo ? 'bg-[#1E5B4F]' : 'bg-gray-400'}`} />
                     {toggling === code.id ? '...' : code.activo ? 'Activo' : 'Inactivo'}
                   </button>
                 </div>
@@ -297,7 +297,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                   onChange={e => f('codigo', e.target.value.toUpperCase())}
                   placeholder="Ej. VERANO15"
                   maxLength={30}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base font-mono uppercase tracking-wider focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base font-mono uppercase tracking-wider focus:outline-none focus:border-[#1E5B4F]"
                 />
               </div>
 
@@ -307,7 +307,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                 <select
                   value={form.tipo}
                   onChange={e => f('tipo', e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1E5B4F]"
                 >
                   <option value="porcentaje">Porcentaje (%)</option>
                   <option value="monto_fijo">Monto fijo ($)</option>
@@ -327,7 +327,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                   min="0.01"
                   max={form.tipo === 'porcentaje' ? '100' : undefined}
                   step="0.01"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1E5B4F]"
                 />
               </div>
 
@@ -343,7 +343,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                   placeholder="Ej. 150"
                   min="0"
                   step="0.01"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1E5B4F]"
                 />
               </div>
 
@@ -359,7 +359,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                   placeholder="Ilimitado"
                   min="1"
                   step="1"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1E5B4F]"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                   type="date"
                   value={form.fecha_inicio}
                   onChange={e => f('fecha_inicio', e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1E5B4F]"
                 />
               </div>
 
@@ -385,7 +385,7 @@ export default function DescuentosTab({ restaurant }: Props) {
                   type="date"
                   value={form.fecha_fin}
                   onChange={e => f('fecha_fin', e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#1E5B4F]"
                 />
               </div>
             </div>
@@ -399,11 +399,11 @@ export default function DescuentosTab({ restaurant }: Props) {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors"
                 style={
                   form.activo
-                    ? { backgroundColor: 'rgba(26,107,60,0.10)', color: '#1A6B3C' }
+                    ? { backgroundColor: 'rgba(30,91,79,0.10)', color: '#1E5B4F' }
                     : { backgroundColor: '#f3f4f6', color: '#6b7280' }
                 }
               >
-                <span className={`w-2 h-2 rounded-full ${form.activo ? 'bg-[#1A6B3C]' : 'bg-gray-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${form.activo ? 'bg-[#1E5B4F]' : 'bg-gray-400'}`} />
                 {form.activo ? 'Sí' : 'No'}
               </button>
             </div>
@@ -422,7 +422,7 @@ export default function DescuentosTab({ restaurant }: Props) {
               <button
                 onClick={saveCode}
                 disabled={saving}
-                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-[#1A6B3C] hover:bg-[#155a32] disabled:opacity-50 transition-colors"
+                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-[#1E5B4F] hover:bg-[#164A40] disabled:opacity-50 transition-colors"
               >
                 {saving ? 'Guardando...' : modal === 'new' ? 'Crear código' : 'Guardar cambios'}
               </button>

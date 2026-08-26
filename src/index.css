@@ -1,17 +1,40 @@
 @import "tailwindcss";
 
+:root {
+  --ink: #111111;
+  --background: #F7F7F5;
+  --surface: #FFFFFF;
+  --muted: #6B7280;
+  --border: #E5E7EB;
+  --yalo-primary: #1E5B4F;
+  --success: #1E9E63;
+  --danger: #DC2626;
+  --restaurant-accent: #1E5B4F;
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Customer-facing base typography — prevents needing to pinch-zoom */
 html { font-size: 16px; }
-body { line-height: 1.55; overflow-x: hidden; }
+body { line-height: 1.55; overflow-x: hidden; font-family: 'Inter', system-ui, sans-serif; }
 
-/* ── Thermal ticket print ───────────────────────────────────────────── */
+h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+.font-display { font-family: 'Playfair Display', serif; }
+.font-body { font-family: 'Inter', system-ui, sans-serif; }
+
 @media print {
-  body > *:not(#print-ticket) { display: none !important; }
-  body { margin: 0 !important; padding: 0 !important; }
-  #print-ticket { display: block !important; margin: 0 !important; padding: 0 !important; }
-  @page { size: 58mm auto; margin: 0; }
+  body * {
+    visibility: hidden;
+  }
+  #print-ticket,
+  #print-ticket * {
+    visibility: visible;
+  }
+  #print-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm;
+  }
 }
-

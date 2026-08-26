@@ -29,7 +29,7 @@ export default function RestaurantRecuperar() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1A6B3C] mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1E5B4F] mb-3">
             <span className="text-white text-2xl font-bold">Y</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Recuperar contraseña</h1>
@@ -41,7 +41,7 @@ export default function RestaurantRecuperar() {
             <div className="text-center space-y-4">
               <p className="text-4xl">✉️</p>
               <p className="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">{success}</p>
-              <Link to="/restaurant/login" className="block w-full bg-[#1A6B3C] text-white py-3 rounded-xl font-semibold hover:bg-[#155a32] text-center">
+              <Link to="/restaurant/login" className="block w-full bg-[#1E5B4F] text-white py-3 rounded-xl font-semibold hover:bg-[#164A40] text-center">
                 Volver al inicio de sesión
               </Link>
             </div>
@@ -55,11 +55,11 @@ export default function RestaurantRecuperar() {
                   onChange={e => setEmail(e.target.value)}
                   required
                   placeholder="demo@holayalo.mx"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
-              <button type="submit" disabled={loading} className="w-full bg-[#1A6B3C] text-white py-3 rounded-xl font-semibold hover:bg-[#155a32] disabled:opacity-60">
+              <button type="submit" disabled={loading} className="w-full bg-[#1E5B4F] text-white py-3 rounded-xl font-semibold hover:bg-[#164A40] disabled:opacity-60">
                 {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
               </button>
             </form>
@@ -67,7 +67,7 @@ export default function RestaurantRecuperar() {
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-4">
-          <Link to="/restaurant/login" className="text-[#1A6B3C] hover:underline">← Volver al inicio de sesión</Link>
+          <Link to="/restaurant/login" className="text-[#1E5B4F] hover:underline">← Volver al inicio de sesión</Link>
         </p>
       </div>
     </div>

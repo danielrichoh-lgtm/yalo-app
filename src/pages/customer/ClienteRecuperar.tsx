@@ -27,22 +27,22 @@ export default function ClienteRecuperar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--background)' }}>
       <div className="w-full max-w-sm">
         <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
           ← Volver al menú
         </button>
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Recuperar contraseña</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-900">Recuperar contraseña</h1>
           <p className="text-sm text-gray-500 mt-1">Te enviaremos un enlace a tu correo</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl border p-6" style={{ borderColor: 'var(--border)' }}>
           {success ? (
             <div className="text-center space-y-4">
               <p className="text-4xl">✉️</p>
               <p className="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">{success}</p>
-              <Link to="/cliente/login" className="block w-full bg-[#1A6B3C] text-white py-3 rounded-xl font-semibold hover:bg-[#155a32] text-center">
+              <Link to="/cliente/login" className="block w-full text-white py-3 rounded-xl font-semibold text-center hover:opacity-90 transition-all" style={{ background: 'var(--ink)' }}>
                 Volver al inicio de sesión
               </Link>
             </div>
@@ -56,11 +56,12 @@ export default function ClienteRecuperar() {
                   onChange={e => setEmail(e.target.value)}
                   required
                   placeholder="juan@ejemplo.com"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                  className="w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
+                  style={{ borderColor: 'var(--border)' }}
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
-              <button type="submit" disabled={loading} className="w-full bg-[#1A6B3C] text-white py-3 rounded-xl font-semibold hover:bg-[#155a32] disabled:opacity-60">
+              <button type="submit" disabled={loading} className="w-full text-white py-3 rounded-xl font-semibold disabled:opacity-60 hover:opacity-90 transition-all" style={{ background: 'var(--ink)' }}>
                 {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
               </button>
             </form>
@@ -68,7 +69,7 @@ export default function ClienteRecuperar() {
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-4">
-          <Link to="/cliente/login" className="text-[#1A6B3C] hover:underline">← Volver al inicio de sesión</Link>
+          <Link to="/cliente/login" className="hover:underline" style={{ color: 'var(--yalo-primary)' }}>← Volver al inicio de sesión</Link>
         </p>
       </div>
     </div>

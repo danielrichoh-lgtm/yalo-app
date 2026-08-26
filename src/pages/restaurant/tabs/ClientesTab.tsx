@@ -162,7 +162,7 @@ export default function ClientesTab({ restaurant }: Props) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por nombre o teléfono..."
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C] bg-white"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F] bg-white"
             />
           </div>
 

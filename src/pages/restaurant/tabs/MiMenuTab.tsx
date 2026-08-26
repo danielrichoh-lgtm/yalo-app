@@ -268,7 +268,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
           </div>
           <button
             onClick={() => saveConfig({ servicio_activo: !config.servicio_activo })}
-            className={`w-12 h-6 rounded-full transition-colors ${config.servicio_activo ? 'bg-[#34C776]' : 'bg-gray-200'}`}
+            className={`w-12 h-6 rounded-full transition-colors ${config.servicio_activo ? 'bg-[#2ECC71]' : 'bg-gray-200'}`}
           >
             <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform mx-0.5 ${config.servicio_activo ? 'translate-x-6' : 'translate-x-0'}`} />
           </button>
@@ -276,24 +276,58 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
         <div className="flex gap-4">
           <div className="flex-1">
             <label className="block text-xs text-gray-600 mb-1">Apertura</label>
-            <input type="time" value={config.hora_apertura} onChange={e => setConfig(c => ({ ...c, hora_apertura: e.target.value }))} onBlur={() => saveConfig({ hora_apertura: config.hora_apertura })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A6B3C]" />
+            <input type="time" value={config.hora_apertura} onChange={e => setConfig(c => ({ ...c, hora_apertura: e.target.value }))} onBlur={() => saveConfig({ hora_apertura: config.hora_apertura })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]" />
           </div>
           <div className="flex-1">
             <label className="block text-xs text-gray-600 mb-1">Cierre</label>
-            <input type="time" value={config.hora_cierre} onChange={e => setConfig(c => ({ ...c, hora_cierre: e.target.value }))} onBlur={() => saveConfig({ hora_cierre: config.hora_cierre })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A6B3C]" />
+            <input type="time" value={config.hora_cierre} onChange={e => setConfig(c => ({ ...c, hora_cierre: e.target.value }))} onBlur={() => saveConfig({ hora_cierre: config.hora_cierre })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]" />
           </div>
+        </div>
+      </section>
+
+      {/* Banner de promoción */}
+      <section className="bg-white rounded-xl border border-gray-100 p-4">
+        <h3 className="font-bold text-gray-900 mb-4">Banner de promoción</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="font-medium text-gray-800">Mostrar banner de promoción</p>
+            <p className="text-xs text-gray-500">Aparece arriba del menú en la app del cliente</p>
+          </div>
+          <button
+            onClick={() => saveConfig({ banner_activo: !config.banner_activo })}
+            className={`w-12 h-6 rounded-full transition-colors ${config.banner_activo ? 'bg-[#2ECC71]' : 'bg-gray-200'}`}
+          >
+            <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform mx-0.5 ${config.banner_activo ? 'translate-x-6' : 'translate-x-0'}`} />
+          </button>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Mensaje del banner</label>
+          <textarea
+            value={config.banner_promo ?? ''}
+            onChange={e => setConfig(c => ({ ...c, banner_promo: e.target.value }))}
+            placeholder="🎉 Usa el código BIENVENIDO10 y obtén 10% en tu primer pedido directo"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none h-20 focus:outline-none focus:border-[#1E5B4F]"
+          />
+          <p className="text-xs text-gray-400 mt-1">Si dejas el campo vacío, el banner no se mostrará</p>
+          <button
+            onClick={() => saveField('banner_promo', config.banner_promo?.trim() ?? '')}
+            disabled={saving}
+            className="mt-3 px-4 py-2 bg-[#1E5B4F] text-white text-sm rounded-lg hover:bg-[#164A40] disabled:opacity-60"
+          >
+            {savedFields.banner_promo ? 'Guardado ✓' : 'Guardar'}
+          </button>
         </div>
       </section>
 
       {/* Delivery config */}
       <section className="bg-white rounded-xl border border-gray-100 p-4">
         <h3 className="font-bold text-gray-900 mb-4">Configuración de entrega</h3>
-        {([['pickup_activo', 'Recoger en local'], ['repartidor_propio', 'Repartidor propio'], ['repartidor_externo', 'Repartidor externo']] as [keyof Restaurant, string][]).map(([key, label]) => (
+        {([['pickup_activo', 'Recoger en local'], ['repartidor_propio', 'Repartidor propio']] as [keyof Restaurant, string][]).map(([key, label]) => (
           <div key={key} className="flex items-center justify-between py-2">
             <p className="text-sm text-gray-800">{label}</p>
             <button
               onClick={() => saveConfig({ [key]: !config[key] } as Partial<Restaurant>)}
-              className={`w-11 h-6 rounded-full transition-colors ${config[key] ? 'bg-[#34C776]' : 'bg-gray-200'}`}
+              className={`w-11 h-6 rounded-full transition-colors ${config[key] ? 'bg-[#2ECC71]' : 'bg-gray-200'}`}
             >
               <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform mx-0.5 ${config[key] ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
@@ -310,12 +344,12 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                 min={0}
                 step={1}
                 onChange={e => setConfig(c => ({ ...c, costo_envio_por_platillo: parseInt(e.target.value) || 0 }))}
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]"
               />
               <button
                 onClick={() => saveField('costo_envio_por_platillo', config.costo_envio_por_platillo ?? 0)}
                 disabled={saving}
-                className="px-4 py-2 bg-[#1A6B3C] text-white text-sm rounded-lg hover:bg-[#155a32] disabled:opacity-60 whitespace-nowrap"
+                className="px-4 py-2 bg-[#1E5B4F] text-white text-sm rounded-lg hover:bg-[#164A40] disabled:opacity-60 whitespace-nowrap"
               >
                 {savedFields.costo_envio_por_platillo ? 'Guardado ✓' : 'Guardar'}
               </button>
@@ -332,12 +366,12 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                 min={0}
                 step={1}
                 onChange={e => setConfig(c => ({ ...c, pedido_minimo: parseInt(e.target.value) || 0 }))}
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]"
               />
               <button
                 onClick={() => saveField('pedido_minimo', config.pedido_minimo ?? 0)}
                 disabled={saving}
-                className="px-4 py-2 bg-[#1A6B3C] text-white text-sm rounded-lg hover:bg-[#155a32] disabled:opacity-60 whitespace-nowrap"
+                className="px-4 py-2 bg-[#1E5B4F] text-white text-sm rounded-lg hover:bg-[#164A40] disabled:opacity-60 whitespace-nowrap"
               >
                 {savedFields.pedido_minimo ? 'Guardado ✓' : 'Guardar'}
               </button>
@@ -357,7 +391,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
             <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">Sin logo</div>
           )}
           <div className="flex flex-col gap-2">
-            <button onClick={() => logoRef.current?.click()} className="text-sm text-[#1A6B3C] font-medium border border-[#1A6B3C] px-4 py-2 rounded-lg hover:bg-green-50">
+            <button onClick={() => logoRef.current?.click()} className="text-sm text-[#1E5B4F] font-medium border border-[#1E5B4F] px-4 py-2 rounded-lg hover:bg-green-50">
               {config.logo ? 'Cambiar logo' : 'Subir logo'}
             </button>
             {config.logo && (
@@ -379,7 +413,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
           <h3 className="font-bold text-gray-900">Platillos ({menuItems.length})</h3>
           <button
             onClick={openNewItem}
-            className="text-sm bg-[#1A6B3C] text-white px-3 py-1.5 rounded-lg hover:bg-[#155a32]"
+            className="text-sm bg-[#1E5B4F] text-white px-3 py-1.5 rounded-lg hover:bg-[#164A40]"
           >
             + Agregar
           </button>
@@ -408,7 +442,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 text-sm truncate">{item.nombre}</p>
                         <p className="text-xs text-gray-500 truncate">{item.descripcion}</p>
-                        <p className="text-sm font-semibold text-[#1A6B3C]">${item.precio.toFixed(2)}</p>
+                        <p className="text-sm font-semibold text-[#1E5B4F]">${item.precio.toFixed(2)}</p>
                         {item.variantes && parseVariantes(item.variantes).length > 0 && (
                           <p className="text-xs text-gray-400 mt-0.5">
                             {parseVariantes(item.variantes).map(g => g.nombre).join(' · ')}
@@ -418,7 +452,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => toggleDisponible(item)}
-                          className={`w-9 h-5 rounded-full transition-colors flex-shrink-0 ${item.disponible ? 'bg-[#34C776]' : 'bg-gray-200'}`}
+                          className={`w-9 h-5 rounded-full transition-colors flex-shrink-0 ${item.disponible ? 'bg-[#2ECC71]' : 'bg-gray-200'}`}
                         >
                           <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform mx-0.5 ${item.disponible ? 'translate-x-4' : 'translate-x-0'}`} />
                         </button>
@@ -448,20 +482,20 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
               value={editingItem.nombre ?? ''}
               onChange={e => setEditingItem(p => ({ ...p, nombre: e.target.value }))}
               placeholder="Nombre"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
             />
             <textarea
               value={editingItem.descripcion ?? ''}
               onChange={e => setEditingItem(p => ({ ...p, descripcion: e.target.value }))}
               placeholder="Descripción"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm resize-none h-16 focus:outline-none focus:border-[#1A6B3C]"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm resize-none h-16 focus:outline-none focus:border-[#1E5B4F]"
             />
             <input
               type="number"
               value={editingItem.precio ?? ''}
               onChange={e => setEditingItem(p => ({ ...p, precio: parseFloat(e.target.value) || 0 }))}
               placeholder="Precio"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
             />
             {(() => {
               const existingCats = Array.from(new Set(menuItems.map(i => i.categoria ?? 'Comidas')))
@@ -482,7 +516,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                         setEditingItem(p => ({ ...p, categoria: e.target.value }))
                       }
                     }}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C] bg-white"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F] bg-white"
                   >
                     {allCats.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -494,7 +528,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                       value={current}
                       onChange={e => setEditingItem(p => ({ ...p, categoria: e.target.value }))}
                       placeholder="Escribe el nombre de la categoría (ej. Bebidas)"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                     />
                   )}
                 </>
@@ -507,7 +541,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                 ) : (
                   <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs flex-shrink-0">Sin foto</div>
                 )}
-                <button onClick={() => photoRef.current?.click()} className="text-sm text-[#1A6B3C] border border-[#1A6B3C] px-3 py-1.5 rounded-lg">
+                <button onClick={() => photoRef.current?.click()} className="text-sm text-[#1E5B4F] border border-[#1E5B4F] px-3 py-1.5 rounded-lg">
                   {editingItem.foto ? 'Cambiar foto' : 'Agregar foto'}
                 </button>
                 <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
@@ -534,7 +568,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                 <p className="text-sm font-semibold text-gray-800">Variantes (obligatorias)</p>
                 <button
                   onClick={addVariantGroup}
-                  className="text-xs text-[#1A6B3C] border border-[#1A6B3C] px-2.5 py-1 rounded-lg hover:bg-green-50"
+                  className="text-xs text-[#1E5B4F] border border-[#1E5B4F] px-2.5 py-1 rounded-lg hover:bg-green-50"
                 >
                   + Agregar grupo
                 </button>
@@ -550,7 +584,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                         value={group.nombre}
                         onChange={e => updateVariantGroupName(idx, e.target.value)}
                         placeholder="Nombre del grupo (ej. Salsa)"
-                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                       />
                       <button
                         onClick={() => removeVariantGroup(idx)}
@@ -561,7 +595,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                       <select
                         value={group.tipo === 'contador' ? 'contador' : 'radio'}
                         onChange={e => updateVariantGroupTipo(idx, e.target.value === 'contador' ? 'contador' : undefined)}
-                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C] bg-white"
+                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F] bg-white"
                       >
                         <option value="radio">Elección única</option>
                         <option value="contador">Repartir cantidad</option>
@@ -574,7 +608,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                             value={group.min ?? 0}
                             min={0}
                             onChange={e => updateVariantGroupMin(idx, parseInt(e.target.value) || 0)}
-                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                           />
                           <span className="text-xs text-gray-500">Max</span>
                           <input
@@ -582,7 +616,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                             value={group.max ?? 1}
                             min={1}
                             onChange={e => updateVariantGroupMax(idx, parseInt(e.target.value) || 1)}
-                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                           />
                         </div>
                       ) : (
@@ -593,7 +627,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                             value={group.min ?? 0}
                             min={0}
                             onChange={e => updateVariantGroupMin(idx, parseInt(e.target.value) || 0)}
-                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                           />
                           <span className="text-xs text-gray-500">Max</span>
                           <input
@@ -601,7 +635,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                             value={group.max ?? 1}
                             min={1}
                             onChange={e => updateVariantGroupMax(idx, parseInt(e.target.value) || 1)}
-                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                            className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                           />
                         </div>
                       )}
@@ -616,7 +650,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                               value={op.nombre}
                               onChange={e => updateVariantOpcionNombre(idx, opIdx, e.target.value)}
                               placeholder="Nombre de la opción"
-                              className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                              className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                             />
                             <div className="flex items-center gap-1">
                               <span className="text-xs text-gray-500">$</span>
@@ -626,7 +660,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                                 min={0}
                                 onChange={e => updateVariantOpcionPrecio(idx, opIdx, parseFloat(e.target.value) || 0)}
                                 placeholder="0"
-                                className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                                className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                               />
                             </div>
                             <button
@@ -641,7 +675,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                                 })
                                 return { ...g, opciones }
                               }))}
-                              className={`w-8 h-5 rounded-full transition-colors flex-shrink-0 ${disponible ? 'bg-[#34C776]' : 'bg-gray-200'}`}
+                              className={`w-8 h-5 rounded-full transition-colors flex-shrink-0 ${disponible ? 'bg-[#2ECC71]' : 'bg-gray-200'}`}
                             >
                               <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform mx-0.5 ${disponible ? 'translate-x-3' : 'translate-x-0'}`} />
                             </button>
@@ -654,7 +688,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                       })}
                       <button
                         onClick={() => addVariantOpcion(idx)}
-                        className="text-xs text-[#1A6B3C] border border-[#1A6B3C] px-2.5 py-1 rounded-lg hover:bg-green-50 mt-1"
+                        className="text-xs text-[#1E5B4F] border border-[#1E5B4F] px-2.5 py-1 rounded-lg hover:bg-green-50 mt-1"
                       >+ Agregar opción</button>
                     </div>
                   </div>
@@ -668,7 +702,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                 <p className="text-sm font-semibold text-gray-800">Extras (opcionales con costo)</p>
                 <button
                   onClick={() => setExtraItems(prev => [...prev, { nombre: '', precio: 0, max: 10 }])}
-                  className="text-xs text-[#1A6B3C] border border-[#1A6B3C] px-2.5 py-1 rounded-lg hover:bg-green-50"
+                  className="text-xs text-[#1E5B4F] border border-[#1E5B4F] px-2.5 py-1 rounded-lg hover:bg-green-50"
                 >
                   + Agregar extra
                 </button>
@@ -683,7 +717,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                       value={extra.nombre}
                       onChange={e => setExtraItems(prev => prev.map((ex, i) => i === idx ? { ...ex, nombre: e.target.value } : ex))}
                       placeholder="Nombre del extra (ej. Caldo de res)"
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                     />
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">$</span>
@@ -692,7 +726,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                         value={extra.precio}
                         min={0}
                         onChange={e => setExtraItems(prev => prev.map((ex, i) => i === idx ? { ...ex, precio: parseFloat(e.target.value) || 0 } : ex))}
-                        className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                        className="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                       />
                     </div>
                     <div className="flex items-center gap-1">
@@ -702,14 +736,14 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
                         value={extra.max ?? 10}
                         min={1}
                         onChange={e => setExtraItems(prev => prev.map((ex, i) => i === idx ? { ...ex, max: parseInt(e.target.value) || 1 } : ex))}
-                        className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                        className="w-12 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
                       />
                     </div>
                     <button
                       type="button"
                       title={extra.disponible !== false ? 'Disponible' : 'Agotado'}
                       onClick={() => setExtraItems(prev => prev.map((ex, i) => i === idx ? { ...ex, disponible: ex.disponible === false ? true : false } : ex))}
-                      className={`w-8 h-5 rounded-full transition-colors flex-shrink-0 ${extra.disponible !== false ? 'bg-[#34C776]' : 'bg-gray-200'}`}
+                      className={`w-8 h-5 rounded-full transition-colors flex-shrink-0 ${extra.disponible !== false ? 'bg-[#2ECC71]' : 'bg-gray-200'}`}
                     >
                       <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform mx-0.5 ${extra.disponible !== false ? 'translate-x-3' : 'translate-x-0'}`} />
                     </button>
@@ -724,7 +758,7 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
 
             <div className="flex gap-2 pt-1">
               <button onClick={() => setEditingItem(null)} className="flex-1 border border-gray-200 py-2.5 rounded-xl text-sm">Cancelar</button>
-              <button onClick={saveItem} disabled={saving} className="flex-1 bg-[#1A6B3C] text-white py-2.5 rounded-xl text-sm hover:bg-[#155a32] disabled:opacity-60">
+              <button onClick={saveItem} disabled={saving} className="flex-1 bg-[#1E5B4F] text-white py-2.5 rounded-xl text-sm hover:bg-[#164A40] disabled:opacity-60">
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
