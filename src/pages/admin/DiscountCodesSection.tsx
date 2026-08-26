@@ -249,7 +249,7 @@ export default function DiscountCodesSection({ restaurants }: { restaurants: Res
                       {/* Tipo + valor */}
                       <span
                         className="text-xs font-semibold px-2 py-0.5 rounded"
-                        style={{ backgroundColor: 'rgba(52,199,118,0.12)', color: '#34C776' }}
+                        style={{ backgroundColor: 'rgba(46,204,113,0.12)', color: '#2ECC71' }}
                       >
                         {valorDisplay(code)} {code.tipo === 'porcentaje' ? 'descuento' : 'fijo'}
                       </span>
@@ -277,11 +277,11 @@ export default function DiscountCodesSection({ restaurants }: { restaurants: Res
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 shrink-0"
                       style={
                         code.activo
-                          ? { backgroundColor: 'rgba(52,199,118,0.12)', color: '#34C776' }
+                          ? { backgroundColor: 'rgba(46,204,113,0.12)', color: '#2ECC71' }
                           : { backgroundColor: 'rgba(255,255,255,0.06)', color: '#6b7280' }
                       }
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${code.activo ? 'bg-[#34C776]' : 'bg-gray-500'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${code.activo ? 'bg-[#2ECC71]' : 'bg-gray-500'}`} />
                       {toggling === code.id ? '...' : code.activo ? 'Activo' : 'Inactivo'}
                     </button>
 
@@ -477,11 +477,11 @@ export default function DiscountCodesSection({ restaurants }: { restaurants: Res
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                 style={
                   form.activo
-                    ? { backgroundColor: 'rgba(52,199,118,0.12)', color: '#34C776' }
+                    ? { backgroundColor: 'rgba(46,204,113,0.12)', color: '#2ECC71' }
                     : { backgroundColor: 'rgba(255,255,255,0.06)', color: '#6b7280' }
                 }
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${form.activo ? 'bg-[#34C776]' : 'bg-gray-500'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${form.activo ? 'bg-[#2ECC71]' : 'bg-gray-500'}`} />
                 {form.activo ? 'Sí' : 'No'}
               </button>
             </div>

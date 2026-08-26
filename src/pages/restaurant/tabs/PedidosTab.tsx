@@ -422,7 +422,7 @@ export default function PedidosTab({ restaurant }: Props) {
               </button>
               <button
                 onClick={async () => { const id = archivingId; setArchivingId(null); await archiveOrder(id) }}
-                className="flex-1 py-3 rounded-xl font-bold text-base text-white bg-[#1A6B3C] hover:bg-[#155a32] transition-colors"
+                className="flex-1 py-3 rounded-xl font-bold text-base text-white bg-[#1E5B4F] hover:bg-[#164A40] transition-colors"
               >
                 Sí, ocultar
               </button>
@@ -450,7 +450,7 @@ export default function PedidosTab({ restaurant }: Props) {
               </button>
               <button
                 onClick={async () => { setConfirmLimpiar(false); await limpiarVista() }}
-                className="flex-1 py-3 rounded-xl font-bold text-base text-white bg-[#1A6B3C] hover:bg-[#155a32] transition-colors"
+                className="flex-1 py-3 rounded-xl font-bold text-base text-white bg-[#1E5B4F] hover:bg-[#164A40] transition-colors"
               >
                 Sí, limpiar
               </button>

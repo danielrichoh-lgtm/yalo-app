@@ -14,14 +14,14 @@ function StatusProgress({ status }: { status: OrderStatus }) {
       {STATUS_STEPS.map((s, i) => (
         <div key={s} className="flex items-center gap-1 flex-shrink-0">
           <div className="flex flex-col items-center">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-              ${i < current ? 'bg-[#34C776] text-white' : i === current ? 'bg-[#1A6B3C] text-white' : 'bg-gray-100 text-gray-400'}`}>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+              style={i < current ? { background: 'var(--success)', color: 'white' } : i === current ? { background: 'var(--yalo-primary)', color: 'white' } : { background: '#F3F4F6', color: '#9CA3AF' }}>
               {i < current ? '✓' : i + 1}
             </div>
-            <span className={`text-[9px] mt-0.5 ${i === current ? 'text-[#1A6B3C] font-bold' : 'text-gray-400'}`}>{s}</span>
+            <span className="text-[9px] mt-0.5" style={i === current ? { color: 'var(--yalo-primary)', fontWeight: 700 } : { color: '#9CA3AF' }}>{s}</span>
           </div>
           {i < STATUS_STEPS.length - 1 && (
-            <div className={`h-0.5 w-4 flex-shrink-0 ${i < current ? 'bg-[#34C776]' : 'bg-gray-100'} mb-3`} />
+            <div className="h-0.5 w-4 flex-shrink-0 mb-3" style={i < current ? { background: 'var(--success)' } : { background: '#F3F4F6' }} />
           )}
         </div>
       ))}
@@ -160,17 +160,17 @@ export default function ClientePedidos() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-[#1A6B3C] text-white px-4 py-4 sticky top-0 z-30">
-        <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white">←</button>
-          <h1 className="font-bold text-lg">Mis pedidos</h1>
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+      <header className="bg-white border-b sticky top-0 z-30" style={{ borderColor: 'var(--border)' }}>
+        <div className="max-w-[1040px] mx-auto px-4 py-4 flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-700 text-lg">←</button>
+          <h1 className="font-display font-bold text-lg text-gray-900">Mis pedidos</h1>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-5 space-y-6">
+      <main className="max-w-[1040px] mx-auto px-4 py-6 space-y-6">
         {reorderNotice && (
-          <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 text-sm text-amber-800">
+          <div className="rounded-xl px-4 py-3 text-sm text-amber-800" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
             {reorderNotice} Cargando el resto de tu pedido...
           </div>
         )}
@@ -180,18 +180,19 @@ export default function ClientePedidos() {
           <>
             {activeOrders.length > 0 && (
               <section>
-                <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#34C776] animate-pulse" />
+                <h2 className="font-display font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--success)' }} />
                   En curso ({activeOrders.length})
                 </h2>
                 <div className="space-y-3">
                   {activeOrders.map(order => (
-                    <div key={order.id} className="bg-white rounded-xl border border-gray-100 p-4">
+                    <div key={order.id} className="bg-white rounded-xl border p-4" style={{ borderColor: 'var(--border)' }}>
                       <div className="flex justify-between">
                         <div>
                           <Link
                             to={`/pedido/${order.numero_orden}`}
-                            className="font-bold text-[#1A6B3C] hover:underline text-base"
+                            className="font-bold hover:underline text-base"
+                            style={{ color: 'var(--yalo-primary)' }}
                           >
                             {order.numero_orden}
                           </Link>
@@ -210,12 +211,12 @@ export default function ClientePedidos() {
 
             {historial.length > 0 && (
               <section>
-                <h2 className="font-bold text-gray-900 mb-3">Historial</h2>
+                <h2 className="font-display font-bold text-gray-900 mb-3">Historial</h2>
                 <div className="space-y-3">
                   {historial.map(order => {
                     const orderItems = Array.isArray(order.items) ? order.items : JSON.parse(order.items as unknown as string)
                     return (
-                      <div key={order.id} className="bg-white rounded-xl border border-gray-100 p-4">
+                      <div key={order.id} className="bg-white rounded-xl border p-4" style={{ borderColor: 'var(--border)' }}>
                         <div className="flex justify-between items-start">
                           <div>
                             <span className="font-bold text-gray-700 text-base">{order.numero_orden}</span>
@@ -239,7 +240,8 @@ export default function ClientePedidos() {
                           <button
                             onClick={() => handleReorder(order)}
                             disabled={reordering === order.id}
-                            className="mt-3 w-full bg-[#1A6B3C] hover:bg-[#155a32] disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+                            className="mt-3 w-full text-white font-semibold py-2.5 rounded-xl text-sm transition-all disabled:opacity-50 hover:opacity-90"
+                            style={{ background: 'var(--ink)' }}
                           >
                             {reordering === order.id ? 'Cargando pedido...' : 'Volver a pedir'}
                           </button>
@@ -257,7 +259,8 @@ export default function ClientePedidos() {
                 <p>Aún no has hecho pedidos desde este dispositivo</p>
                 <button
                   onClick={() => navigate(cartRestaurant?.slug ? `/menu/${cartRestaurant.slug}` : '/')}
-                  className="mt-3 inline-block text-[#1A6B3C] font-medium text-sm hover:underline"
+                  className="mt-3 inline-block font-medium text-sm hover:underline"
+                  style={{ color: 'var(--yalo-primary)' }}
                 >
                   Ver menú
                 </button>

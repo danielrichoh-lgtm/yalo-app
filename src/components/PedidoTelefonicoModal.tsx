@@ -343,7 +343,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
             if (opts?.inputMode === 'numeric') v = v.replace(/\D/g, '').slice(0, opts?.maxLength ?? 99)
             setForm(f => ({ ...f, [name]: v }))
           }}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1A6B3C]"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1E5B4F]"
         />
       </div>
     )
@@ -362,7 +362,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
             onChange={e => setSearchQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             placeholder="Buscar platillo..."
-            className="w-full border-2 border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-base font-medium focus:outline-none focus:border-[#1A6B3C] transition-colors"
+            className="w-full border-2 border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-base font-medium focus:outline-none focus:border-[#1E5B4F] transition-colors"
           />
           {searchQuery && (
             <button
@@ -382,7 +382,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
             onClick={() => { setCat(cat); clearSearch() }}
             className={`px-4 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-colors ${
               !isSearching && activeCat === cat
-                ? 'bg-[#1A6B3C] text-white'
+                ? 'bg-[#1E5B4F] text-white'
                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
             }`}
           >
@@ -414,13 +414,13 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                   className={`rounded-xl border-2 p-2 flex flex-col items-center justify-center text-center transition-all ${
                     !item.disponible
                       ? 'border-gray-100 bg-gray-50 opacity-40 cursor-not-allowed'
-                      : 'border-gray-100 bg-white hover:border-[#1A6B3C] hover:bg-green-50/30 active:scale-95'
+                      : 'border-gray-100 bg-white hover:border-[#1E5B4F] hover:bg-green-50/30 active:scale-95'
                   }`}
                 >
                   <span className={`font-bold text-base leading-tight line-clamp-2 ${!item.disponible ? 'text-gray-400' : 'text-gray-900'}`}>
                     {item.nombre}
                   </span>
-                  <span className={`text-sm mt-1 ${!item.disponible ? 'text-gray-400' : 'text-[#1A6B3C]'}`}>
+                  <span className={`text-sm mt-1 ${!item.disponible ? 'text-gray-400' : 'text-[#1E5B4F]'}`}>
                     ${item.precio.toFixed(0)}
                   </span>
                   {!item.disponible && (
@@ -449,13 +449,13 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                   className={`rounded-xl border-2 p-2 flex flex-col items-center justify-center text-center transition-all ${
                     !item.disponible
                       ? 'border-gray-100 bg-gray-50 opacity-40 cursor-not-allowed'
-                      : 'border-gray-100 bg-white hover:border-[#1A6B3C] hover:bg-green-50/30 active:scale-95'
+                      : 'border-gray-100 bg-white hover:border-[#1E5B4F] hover:bg-green-50/30 active:scale-95'
                   }`}
                 >
                   <span className={`font-bold text-base leading-tight line-clamp-2 ${!item.disponible ? 'text-gray-400' : 'text-gray-900'}`}>
                     {item.nombre}
                   </span>
-                  <span className={`text-sm mt-1 ${!item.disponible ? 'text-gray-400' : 'text-[#1A6B3C]'}`}>
+                  <span className={`text-sm mt-1 ${!item.disponible ? 'text-gray-400' : 'text-[#1E5B4F]'}`}>
                     ${item.precio.toFixed(0)}
                   </span>
                   {!item.disponible && (
@@ -563,12 +563,12 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
       <div className="border-t border-gray-200 px-4 py-3 shrink-0 bg-white">
         <div className="flex items-center justify-between mb-3">
           <span className="font-bold text-gray-900">Total</span>
-          <span className="font-bold text-[#1A6B3C] text-xl">${cartTotal.toFixed(2)}</span>
+          <span className="font-bold text-[#1E5B4F] text-xl">${cartTotal.toFixed(2)}</span>
         </div>
         <button
           onClick={() => setShowCheckout(true)}
           disabled={cart.length === 0}
-          className="w-full bg-[#1A6B3C] text-white py-3 rounded-xl font-bold text-base hover:bg-[#155a32] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-[#1E5B4F] text-white py-3 rounded-xl font-bold text-base hover:bg-[#164A40] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Guardar pedido
         </button>
@@ -602,7 +602,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
       {showCheckout && (
         <div className="fixed inset-0 z-[60] bg-black/60 flex items-end sm:items-center justify-center sm:px-4">
           <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl h-[92vh] sm:h-[88vh] flex flex-col">
-            <div className="bg-[#1A6B3C] text-white px-4 py-3 flex items-center justify-between shrink-0 sm:rounded-t-2xl">
+            <div className="bg-[#1E5B4F] text-white px-4 py-3 flex items-center justify-between shrink-0 sm:rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowCheckout(false)} className="text-white/70 hover:text-white text-lg">←</button>
                 <h2 className="font-bold text-base">Datos del cliente</h2>
@@ -630,10 +630,10 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                       setLastAddrFound(false)
                     }}
                     onBlur={lookupLastAddress}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1A6B3C]"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1E5B4F]"
                   />
                   {lastAddrFound && (
-                    <p className="text-xs text-[#1A6B3C] font-semibold mt-1.5">✓ Dirección cargada del último pedido</p>
+                    <p className="text-xs text-[#1E5B4F] font-semibold mt-1.5">✓ Dirección cargada del último pedido</p>
                   )}
                 </div>
               </div>
@@ -645,7 +645,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                     type="button"
                     onClick={() => setForm(f => ({ ...f, deliveryType: 'pickup' }))}
                     className={`py-3 rounded-xl font-bold text-sm border-2 transition-colors flex flex-col items-center gap-1 ${
-                      form.deliveryType === 'pickup' ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white' : 'bg-white border-gray-200 text-gray-600'
+                      form.deliveryType === 'pickup' ? 'bg-[#1E5B4F] border-[#1E5B4F] text-white' : 'bg-white border-gray-200 text-gray-600'
                     }`}
                   >
                     <span className="text-xl">🏪</span>
@@ -655,7 +655,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                     type="button"
                     onClick={() => setForm(f => ({ ...f, deliveryType: 'domicilio' }))}
                     className={`py-3 rounded-xl font-bold text-sm border-2 transition-colors flex flex-col items-center gap-1 ${
-                      form.deliveryType === 'domicilio' ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white' : 'bg-white border-gray-200 text-gray-600'
+                      form.deliveryType === 'domicilio' ? 'bg-[#1E5B4F] border-[#1E5B4F] text-white' : 'bg-white border-gray-200 text-gray-600'
                     }`}
                   >
                     <span className="text-xl">🛵</span>
@@ -672,7 +672,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                       type="button"
                       onClick={() => setForm(f => ({ ...f, lugarType: 'oficina' }))}
                       className={`py-3 rounded-xl font-bold text-sm border-2 transition-colors flex flex-col items-center gap-1 ${
-                        form.lugarType === 'oficina' ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white' : 'bg-white border-gray-200 text-gray-600'
+                        form.lugarType === 'oficina' ? 'bg-[#1E5B4F] border-[#1E5B4F] text-white' : 'bg-white border-gray-200 text-gray-600'
                       }`}
                     >
                       <span className="text-xl">🏢</span>
@@ -682,7 +682,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                       type="button"
                       onClick={() => setForm(f => ({ ...f, lugarType: 'casa' }))}
                       className={`py-3 rounded-xl font-bold text-sm border-2 transition-colors flex flex-col items-center gap-1 ${
-                        form.lugarType === 'casa' ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white' : 'bg-white border-gray-200 text-gray-600'
+                        form.lugarType === 'casa' ? 'bg-[#1E5B4F] border-[#1E5B4F] text-white' : 'bg-white border-gray-200 text-gray-600'
                       }`}
                     >
                       <span className="text-xl">🏠</span>
@@ -695,11 +695,11 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                     <div className="flex gap-2">
                       <div className="flex-1">
                         <label className="block text-xs font-medium text-gray-600 mb-1">Piso</label>
-                        <input value={form.piso} onChange={e => setForm(f => ({ ...f, piso: e.target.value }))} placeholder="Piso 3" className="w-full border border-gray-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:border-[#1A6B3C]" />
+                        <input value={form.piso} onChange={e => setForm(f => ({ ...f, piso: e.target.value }))} placeholder="Piso 3" className="w-full border border-gray-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]" />
                       </div>
                       <div className="flex-1">
                         <label className="block text-xs font-medium text-gray-600 mb-1">Despacho</label>
-                        <input value={form.despacho} onChange={e => setForm(f => ({ ...f, despacho: e.target.value }))} placeholder="Desp. B" className="w-full border border-gray-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:border-[#1A6B3C]" />
+                        <input value={form.despacho} onChange={e => setForm(f => ({ ...f, despacho: e.target.value }))} placeholder="Desp. B" className="w-full border border-gray-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]" />
                       </div>
                     </div>
                   )}
@@ -725,10 +725,10 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
                     min={orderTotal}
                     step="1"
                     placeholder={`Ej. $${orderTotal.toFixed(0)}`}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1A6B3C]"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1E5B4F]"
                   />
                   {montoPago > orderTotal && montoPago > 0 && (
-                    <p className="text-sm text-[#1A6B3C] font-bold mt-1.5">Cambio: ${cambio.toFixed(2)}</p>
+                    <p className="text-sm text-[#1E5B4F] font-bold mt-1.5">Cambio: ${cambio.toFixed(2)}</p>
                   )}
                   {!form.monto_pago && <p className="text-xs text-gray-400 mt-1">Si dejas vacío, se asume pago exacto</p>}
                 </div>
@@ -764,7 +764,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="w-full bg-[#1A6B3C] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#155a32] disabled:opacity-60 transition-colors"
+                className="w-full bg-[#1E5B4F] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#164A40] disabled:opacity-60 transition-colors"
               >
                 {submitting ? 'Confirmando...' : `Confirmar pedido telefónico · $${orderTotal.toFixed(2)}`}
               </button>
@@ -792,7 +792,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex">
       <div className="bg-white w-full h-full flex flex-col">
-        <div className="bg-[#1A6B3C] text-white px-5 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-[#1E5B4F] text-white px-5 py-3 flex items-center justify-between shrink-0">
           <h2 className="font-bold text-lg">📞 Pedido telefónico</h2>
           <button onClick={onClose} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
         </div>

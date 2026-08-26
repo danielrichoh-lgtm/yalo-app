@@ -49,7 +49,7 @@ export default function ResumenTab({ restaurant }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-gray-900">Resumen</h2>
-        <button onClick={fetchOrders} disabled={loading} className="text-sm text-[#1A6B3C] font-medium flex items-center gap-1 disabled:opacity-50">
+        <button onClick={fetchOrders} disabled={loading} className="text-sm text-[#1E5B4F] font-medium flex items-center gap-1 disabled:opacity-50">
           <span className={loading ? 'animate-spin' : ''}>↻</span> Actualizar
         </button>
       </div>

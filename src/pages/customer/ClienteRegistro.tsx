@@ -49,19 +49,19 @@ export default function ClienteRegistro() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--background)' }}>
       <div className="w-full max-w-sm">
         <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6">
           ← Volver al menú
         </button>
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1A6B3C] mb-3">
-            <span className="text-white text-2xl font-bold">Y</span>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3" style={{ background: 'var(--yalo-primary)' }}>
+            <span className="text-white text-2xl font-bold font-display">Y</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Crear cuenta</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-900">Crear cuenta</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border p-6 space-y-4" style={{ borderColor: 'var(--border)' }}>
           {[
             { key: 'nombre', label: 'Nombre completo', type: 'text', placeholder: 'Juan Pérez' },
             { key: 'telefono', label: 'Teléfono (10 dígitos)', type: 'tel', placeholder: '5512345678' },
@@ -77,19 +77,20 @@ export default function ClienteRegistro() {
                 onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                 required
                 placeholder={placeholder}
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+                className="w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
+                style={{ borderColor: 'var(--border)' }}
               />
             </div>
           ))}
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button type="submit" disabled={loading} className="w-full bg-[#1A6B3C] text-white py-3 rounded-xl font-semibold hover:bg-[#155a32] disabled:opacity-60">
+          <button type="submit" disabled={loading} className="w-full text-white py-3 rounded-xl font-semibold disabled:opacity-60 hover:opacity-90 transition-all" style={{ background: 'var(--ink)' }}>
             {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-4">
           ¿Ya tienes cuenta?{' '}
-          <Link to="/cliente/login" className="text-[#1A6B3C] font-medium hover:underline">Inicia sesión</Link>
+          <Link to="/cliente/login" className="font-medium hover:underline" style={{ color: 'var(--yalo-primary)' }}>Inicia sesión</Link>
         </p>
       </div>
     </div>

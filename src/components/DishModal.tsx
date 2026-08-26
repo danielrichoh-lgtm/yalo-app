@@ -32,8 +32,6 @@ function groupRuleLabel(g: VarianteGrupo): string {
   return `Elige de ${min} a ${max}`
 }
 
-// Groups whose name matches these patterns are treated as optional (min=0)
-// regardless of what's stored in the DB.
 const OPTIONAL_NAME_PATTERNS = [/consom[eé]/i, /caldo/i]
 
 function effectiveMin(g: VarianteGrupo): number {
@@ -48,10 +46,8 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
 
   const variantGroups = parseVariantes(dish.variantes)
 
-  // Checkbox selections: { [groupName]: string[] } — stores opcion nombres
   const [checkboxSelections, setCheckboxSelections] = useState<Record<string, string[]>>({})
 
-  // Stepper counts for tipo=contador groups: { [groupName]: { [opcionNombre]: count } }
   const [contadorCounts, setContadorCounts] = useState<Record<string, Record<string, number>>>({})
 
   const standardGroups = variantGroups.filter(g => g.tipo !== 'contador')
@@ -103,7 +99,6 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
     })
   }
 
-  // Price from selected standard options
   const selectedOptionsCost = standardGroups.reduce((total, g) => {
     const selected = checkboxSelections[g.nombre] ?? []
     return total + g.opciones
@@ -112,7 +107,6 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
       .reduce((sum, op) => sum + op.precio, 0)
   }, 0)
 
-  // Extras — independent quantity steppers
   const dishExtras = parseExtras(dish.extras)
   const [extraCounts, setExtraCounts] = useState<Record<string, number>>({})
 
@@ -189,20 +183,20 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={onClose}>
       <div
         className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         {dish.foto && (
-          <img src={dish.foto} alt={dish.nombre} className="w-full h-48 object-cover rounded-t-2xl sm:rounded-t-2xl" />
+          <img src={dish.foto} alt={dish.nombre} className="w-full h-44 object-cover rounded-t-2xl sm:rounded-t-2xl" />
         )}
         <div className="p-5">
-          <h2 className="text-xl font-bold text-gray-900">{dish.nombre}</h2>
-          {dish.descripcion && <p className="text-gray-500 mt-1 text-base leading-relaxed">{dish.descripcion}</p>}
-          <p className="text-[#1A6B3C] font-bold text-xl mt-2">${dish.precio.toFixed(2)}</p>
+          <h2 className="font-display text-xl font-bold text-gray-900">{dish.nombre}</h2>
+          {dish.descripcion && <p className="text-gray-500 mt-1 text-sm leading-relaxed">{dish.descripcion}</p>}
+          <p className="font-bold text-xl mt-2 text-gray-900">${dish.precio.toFixed(2)}</p>
 
-          {/* Standard groups — checkbox with min/max */}
+          {/* Standard groups */}
           {standardGroups.map(group => {
             const min = effectiveMin(group)
             const max = group.max ?? 1
@@ -210,8 +204,8 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
             const atMax = selected.length >= max
             return (
               <div key={group.nombre} className="mt-5">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
                     {group.nombre}
                     {min > 0
                       ? <span className="text-xs font-normal text-red-500">Requerido</span>
@@ -234,26 +228,28 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
                         key={op.nombre}
                         className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
                           isUnavailable
-                            ? 'border-gray-100 opacity-50 cursor-not-allowed'
+                            ? 'opacity-50 cursor-not-allowed'
                             : isSelected
-                              ? 'border-[#1A6B3C] bg-green-50'
+                              ? 'cursor-pointer'
                               : isDisabled
-                                ? 'border-gray-100 opacity-50 cursor-not-allowed'
-                                : 'border-gray-100 hover:border-gray-200 cursor-pointer'
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'cursor-pointer'
                         }`}
+                        style={isSelected ? { borderColor: 'var(--restaurant-accent)', background: 'rgba(30,91,79,0.04)' } : { borderColor: 'var(--border)' }}
                       >
                         <input
                           type="checkbox"
                           checked={isSelected}
                           disabled={isDisabled}
                           onChange={() => !isDisabled && toggleCheckbox(group.nombre, op.nombre, max)}
-                          className="accent-[#1A6B3C] w-4 h-4"
+                          className="w-4 h-4"
+                          style={{ accentColor: 'var(--restaurant-accent)' }}
                         />
-                        <span className="flex-1 text-base text-gray-800">{op.nombre}</span>
+                        <span className="flex-1 text-sm text-gray-800">{op.nombre}</span>
                         {isUnavailable ? (
                           <span className="text-sm text-gray-400 font-medium">Agotado</span>
                         ) : op.precio > 0 ? (
-                          <span className="text-sm text-[#1A6B3C] font-medium">+${op.precio.toFixed(2)}</span>
+                          <span className="text-sm font-medium" style={{ color: 'var(--restaurant-accent)' }}>+${op.precio.toFixed(2)}</span>
                         ) : null}
                       </label>
                     )
@@ -263,7 +259,7 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
             )
           })}
 
-          {/* Contador groups — stepper with min/max */}
+          {/* Contador groups */}
           {contadorGroups.map(group => {
             const min = group.min ?? group.total ?? 0
             const max = group.max ?? group.total ?? 0
@@ -274,7 +270,7 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
             return (
               <div key={group.nombre} className="mt-5">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
                     {group.nombre}
                     <span className="text-xs font-normal text-red-500">Requerido</span>
                   </h3>
@@ -308,13 +304,13 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
                     const isUnavailable = op.disponible === false
                     const incDisabled = atMax || isUnavailable
                     return (
-                      <div key={op.nombre} className={`flex items-center justify-between p-3 rounded-xl border border-gray-100 ${isUnavailable ? 'opacity-50' : ''}`}>
+                      <div key={op.nombre} className={`flex items-center justify-between p-3 rounded-xl border ${isUnavailable ? 'opacity-50' : ''}`} style={{ borderColor: 'var(--border)' }}>
                         <div>
-                          <span className="text-base text-gray-800">{op.nombre}</span>
+                          <span className="text-sm text-gray-800">{op.nombre}</span>
                           {isUnavailable ? (
                             <span className="text-sm text-gray-400 font-medium ml-2">Agotado</span>
                           ) : op.precio > 0 ? (
-                            <span className="text-sm text-[#1A6B3C] font-medium ml-2">+${op.precio.toFixed(2)}</span>
+                            <span className="text-sm font-medium ml-2" style={{ color: 'var(--restaurant-accent)' }}>+${op.precio.toFixed(2)}</span>
                           ) : null}
                         </div>
                         <div className="flex items-center gap-3">
@@ -326,11 +322,10 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
                           <span className="text-base font-semibold w-5 text-center">{count}</span>
                           <button
                             onClick={() => !incDisabled && updateContador(group.nombre, op.nombre, 1)}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-base ${
-                              incDisabled
-                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                                : 'bg-[#1A6B3C] text-white hover:bg-[#155a32]'
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-base text-white ${
+                              incDisabled ? 'bg-gray-200 cursor-not-allowed' : 'hover:opacity-90'
                             }`}
+                            style={!incDisabled ? { background: 'var(--restaurant-accent)' } : {}}
                           >+</button>
                         </div>
                       </div>
@@ -341,10 +336,10 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
             )
           })}
 
-          {/* Extras — independent qty steppers */}
+          {/* Extras */}
           {dishExtras.length > 0 && (
             <div className="mt-5">
-              <h3 className="font-semibold text-gray-800 mb-2">Extras</h3>
+              <h3 className="font-semibold text-gray-900 mb-2 text-sm">Extras</h3>
               <div className="space-y-2">
                 {dishExtras.map(extra => {
                   const count = extraCounts[extra.nombre] ?? 0
@@ -354,19 +349,16 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
                   return (
                     <div
                       key={extra.nombre}
-                      className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                        isUnavailable
-                          ? 'border-gray-100 opacity-50'
-                          : count > 0 ? 'border-[#1A6B3C] bg-green-50' : 'border-gray-100'
-                      }`}
+                      className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${isUnavailable ? 'opacity-50' : ''}`}
+                      style={count > 0 ? { borderColor: 'var(--restaurant-accent)', background: 'rgba(30,91,79,0.04)' } : { borderColor: 'var(--border)' }}
                     >
                       <div>
-                        <p className="text-base text-gray-800">{extra.nombre}</p>
+                        <p className="text-sm text-gray-800">{extra.nombre}</p>
                         <p className="text-sm font-medium mt-0.5">
                           {isUnavailable ? (
                             <span className="text-gray-400">Agotado</span>
                           ) : (
-                            <span className="text-[#1A6B3C]">
+                            <span style={{ color: 'var(--restaurant-accent)' }}>
                               +${extra.precio.toFixed(2)}
                               {atMax && <span className="text-amber-600 ml-1">· Máximo {limit}</span>}
                             </span>
@@ -382,11 +374,10 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
                         <span className="text-base font-semibold w-4 text-center">{count}</span>
                         <button
                           onClick={() => !atMax && !isUnavailable && updateExtra(extra.nombre, 1, limit)}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-base ${
-                            atMax || isUnavailable
-                              ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                              : 'bg-[#1A6B3C] text-white hover:bg-[#155a32]'
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-base text-white ${
+                            atMax || isUnavailable ? 'bg-gray-200 cursor-not-allowed' : 'hover:opacity-90'
                           }`}
+                          style={!atMax && !isUnavailable ? { background: 'var(--restaurant-accent)' } : {}}
                         >+</button>
                       </div>
                     </div>
@@ -397,7 +388,7 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
           )}
 
           <div className="mt-5 flex items-center gap-4">
-            <span className="text-base font-medium text-gray-700">Cantidad</span>
+            <span className="text-sm font-medium text-gray-700">Cantidad</span>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -406,29 +397,32 @@ export default function DishModal({ dish, onClose, onAdd }: Props) {
               <span className="font-semibold text-lg w-5 text-center">{quantity}</span>
               <button
                 onClick={() => setQuantity(q => q + 1)}
-                className="w-9 h-9 rounded-full bg-[#1A6B3C] flex items-center justify-center text-white font-bold hover:bg-[#155a32] text-lg"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-lg hover:opacity-90"
+                style={{ background: 'var(--restaurant-accent)' }}
               >+</button>
             </div>
           </div>
 
           <div className="mt-5">
-            <label className="block text-base font-medium text-gray-700 mb-1">Nota especial</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nota especial</label>
             <textarea
               value={nota}
               onChange={e => setNota(e.target.value)}
               placeholder="Sin cebolla, extra picante..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-base resize-none h-20 focus:outline-none focus:border-[#1A6B3C]"
+              className="w-full border rounded-xl px-3 py-2 text-sm resize-none h-20 focus:outline-none focus:ring-2"
+              style={{ borderColor: 'var(--border)' }}
             />
           </div>
 
           <button
             onClick={handleAdd}
             disabled={!allVariantsSelected}
-            className={`mt-5 w-full py-3 rounded-xl font-semibold text-base transition-colors flex items-center justify-between px-4 ${
+            className={`mt-5 w-full py-3.5 rounded-xl font-semibold text-base transition-all flex items-center justify-between px-4 ${
               allVariantsSelected
-                ? 'bg-[#1A6B3C] text-white hover:bg-[#155a32]'
+                ? 'text-white hover:opacity-90'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
+            style={allVariantsSelected ? { background: 'var(--ink)' } : {}}
           >
             <span className="text-left">
               Agregar al carrito

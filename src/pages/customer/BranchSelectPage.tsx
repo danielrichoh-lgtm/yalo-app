@@ -21,7 +21,6 @@ export default function BranchSelectPage() {
       .then(({ data }) => {
         const results = (data as Restaurant[]) ?? []
         if (results.length === 1) {
-          // Single branch — skip selection screen entirely
           sessionStorage.setItem(`branch_selected_${slug}`, '1')
           navigate(`/menu/${slug}`, { replace: true })
           return
@@ -35,24 +34,24 @@ export default function BranchSelectPage() {
     navigate(`/menu/${slug}`)
   }
 
-  // While loading or auto-redirecting, render nothing
   if (branches.length === 0) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
       <div className="max-w-lg w-full mx-auto flex flex-col flex-1">
         <div className="px-5 pt-10 pb-4 text-center">
-          <h1 className="text-2xl font-bold text-[#1A6B3C]">¿Desde dónde nos visitas?</h1>
+          <h1 className="font-display text-2xl font-bold" style={{ color: 'var(--yalo-primary)' }}>¿Desde dónde nos visitas?</h1>
         </div>
 
         <div className="mx-4 mt-4 flex flex-col gap-3">
           {branches.map(branch => (
             <div
               key={branch.id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4"
+              className="bg-white rounded-2xl border p-5 flex flex-col gap-4"
+              style={{ borderColor: 'var(--border)' }}
             >
               <div className="flex items-start gap-3">
-                <span className="text-[#1A6B3C] text-xl mt-0.5">📍</span>
+                <span className="text-xl mt-0.5" style={{ color: 'var(--yalo-primary)' }}>📍</span>
                 <div>
                   <p className="font-bold text-gray-900 text-base leading-tight">{branch.nombre}</p>
                   {FALLBACK_DIRECCION[slug ?? ''] && (
@@ -62,7 +61,8 @@ export default function BranchSelectPage() {
               </div>
               <button
                 onClick={() => handleSelect(branch)}
-                className="w-full bg-[#1A6B3C] hover:bg-[#155a32] active:bg-[#114a2a] text-white font-semibold py-3 rounded-xl transition-colors text-base"
+                className="w-full text-white font-semibold py-3 rounded-xl transition-all text-sm hover:opacity-90"
+                style={{ background: 'var(--ink)' }}
               >
                 Seleccionar
               </button>

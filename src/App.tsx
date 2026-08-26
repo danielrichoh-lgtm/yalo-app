@@ -1,9 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRestaurantRoute, ProtectedAdminRoute } from './components/ProtectedRoute'
+import RestaurantBootstrap from './components/RestaurantBootstrap'
+import LandingPage from './pages/LandingPage'
 import RestaurantLogin from './pages/restaurant/RestaurantLogin'
 import RestaurantDashboard from './pages/restaurant/RestaurantDashboard'
+import SignupPage from './pages/restaurant/SignupPage'
+import OnboardingWizard from './pages/restaurant/OnboardingWizard'
 import MenuPage from './pages/customer/MenuPage'
 import BranchSelectPage from './pages/customer/BranchSelectPage'
 import ClienteRegistro from './pages/customer/ClienteRegistro'
@@ -24,9 +28,12 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
+          <RestaurantBootstrap />
           <Routes>
-            <Route path="/" element={<Navigate to="/menu/mi-tierra" replace />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/restaurant/login" element={<RestaurantLogin />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/onboarding" element={<OnboardingWizard />} />
             <Route
               path="/restaurant/dashboard"
               element={

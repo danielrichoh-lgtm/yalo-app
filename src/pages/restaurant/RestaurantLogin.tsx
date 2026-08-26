@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { getRestaurantForUser } from '../../lib/restaurant'
 
 export default function RestaurantLogin() {
   const [email, setEmail] = useState('')
@@ -22,42 +23,29 @@ export default function RestaurantLogin() {
       return setError('Correo o contraseña incorrectos')
     }
 
-    const { data: assignment } = await supabase
-      .from('restaurant_users')
-      .select('restaurant_id, rol')
-      .eq('user_id', data.user.id)
-      .maybeSingle()
-
-    if (!assignment?.restaurant_id) {
-      await supabase.auth.signOut()
-      setLoading(false)
-      return setError('No tienes un restaurante asignado')
-    }
-
-    const { data: restaurant } = await supabase
-      .from('Restaurants')
-      .select('*')
-      .eq('id', assignment.restaurant_id)
-      .single()
+    const restaurant = await getRestaurantForUser(data.user.id)
 
     setLoading(false)
     if (!restaurant) {
       await supabase.auth.signOut()
-      return setError('No se encontró el restaurante asignado')
+      return setError('No tienes un restaurante asignado')
     }
-    sessionStorage.setItem('restaurant_session', JSON.stringify(restaurant))
-    sessionStorage.setItem('restaurant_rol', assignment?.rol ?? 'admin')
-    window.location.href = '/restaurant/dashboard'
+
+    if (restaurant.estado === 'draft' && !restaurant.onboarding_completed) {
+      window.location.href = '/onboarding'
+    } else {
+      window.location.href = '/restaurant/dashboard'
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#1A6B3C] mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#1E5B4F] mb-4">
             <span className="text-white text-2xl font-bold">Y</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Yalo Restaurantes</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: '"Playfair Display", serif' }}>Yalo Restaurantes</h1>
           <p className="text-gray-500 text-sm mt-1">Panel de administración</p>
         </div>
 
@@ -69,7 +57,7 @@ export default function RestaurantLogin() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
               placeholder="demo@holayalo.mx"
             />
           </div>
@@ -80,7 +68,7 @@ export default function RestaurantLogin() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A6B3C]"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1E5B4F]"
               placeholder="••••••••"
             />
           </div>
@@ -88,12 +76,12 @@ export default function RestaurantLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1A6B3C] text-white py-3 rounded-xl font-semibold hover:bg-[#155a32] transition-colors disabled:opacity-60"
+            className="w-full bg-[#1E5B4F] text-white py-3 rounded-xl font-semibold hover:bg-[#164A40] transition-colors disabled:opacity-60"
           >
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
           <p className="text-center text-xs text-gray-500">
-            <Link to="/restaurant/recuperar" className="text-[#1A6B3C] hover:underline">¿Olvidaste tu contraseña?</Link>
+            <Link to="/restaurant/recuperar" className="text-[#1E5B4F] hover:underline">¿Olvidaste tu contraseña?</Link>
           </p>
         </form>
       </div>

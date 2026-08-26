@@ -47,8 +47,13 @@ export interface Restaurant {
   telefono?: string
   banner_promo?: string | null
   banner_activo?: boolean | null
+  estado?: RestaurantEstado
+  onboarding_completed?: boolean
+  radio_entrega_km?: number | null
   created_at: string
 }
+
+export type RestaurantEstado = 'draft' | 'pending_approval' | 'trial' | 'active' | 'free' | 'suspended'
 
 export interface RestaurantUser {
   id: string

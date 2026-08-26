@@ -43,7 +43,6 @@ export default function Checkout() {
   const [confirmModal, setConfirmModal] = useState(false)
   const orderConfirmed = useRef(false)
 
-  // Discount coupon state
   const [couponInput, setCouponInput] = useState('')
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
@@ -85,7 +84,6 @@ export default function Checkout() {
   const dishCount = items.reduce((sum, it) => sum + it.quantity, 0)
   const deliveryCost = deliveryType === 'domicilio' ? costoPorPlatillo * dishCount : 0
 
-  // Discount amount always applies on subtotal only
   const descuento = coupon
     ? coupon.tipo === 'porcentaje'
       ? Math.min(total * (coupon.valor / 100), total)
@@ -116,7 +114,6 @@ export default function Checkout() {
       return
     }
 
-    // Match: restaurant-specific first, then global
     const dc = codes.find((c: Record<string, unknown>) =>
       c.restaurant_id === null || c.restaurant_id === restaurant?.id
     )
@@ -209,7 +206,6 @@ export default function Checkout() {
   const doInsert = async () => {
     setLoading(true)
 
-    // Re-validate coupon at insert time
     let finalDescuento = 0
     let couponCodigoToSave: string | null = null
 
@@ -346,7 +342,6 @@ export default function Checkout() {
       return
     }
 
-    // Atomically increment coupon usage after successful insert
     if (coupon) {
       await supabase.rpc('increment_coupon_usage', { p_coupon_id: coupon.id })
     }
@@ -379,8 +374,8 @@ export default function Checkout() {
     const err = fieldErrors[name]
     return (
       <div>
-        <label className="block text-base font-medium text-gray-700 mb-1">
-          {label}{opts?.required && <span className="text-red-400 ml-1">*</span>}
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}{opts?.required && <span className="text-red-400 ml-0.5">*</span>}
         </label>
         <input
           type={opts?.type ?? 'text'}
@@ -400,7 +395,8 @@ export default function Checkout() {
               }))
             }
           }}
-          className={`w-full border rounded-xl px-4 py-3 text-base focus:outline-none ${err ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-[#1A6B3C]'}`}
+          className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ${err ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+          style={!err ? { borderColor: 'var(--border)' } : {}}
         />
         {err && <p className="text-red-500 text-sm mt-1">{err}</p>}
       </div>
@@ -415,7 +411,8 @@ export default function Checkout() {
         value={form[name]}
         placeholder={placeholder}
         onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
-        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#1A6B3C]"
+        className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2"
+        style={{ borderColor: 'var(--border)' }}
       />
     </div>
   )
@@ -425,23 +422,23 @@ export default function Checkout() {
     : null
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      <header className="bg-[#1A6B3C] text-white px-4 py-4 sticky top-0 z-30">
-        <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white">←</button>
-          <h1 className="font-bold text-lg">Checkout</h1>
+    <div className="min-h-screen pb-8" style={{ background: 'var(--background)' }}>
+      <header className="bg-white border-b sticky top-0 z-30" style={{ borderColor: 'var(--border)' }}>
+        <div className="max-w-[1040px] mx-auto px-4 py-4 flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-700 text-lg">←</button>
+          <h1 className="font-display font-bold text-lg text-gray-900">Checkout</h1>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-[1040px] mx-auto px-4 py-6 space-y-4">
 
-        {/* BLOQUE 1 — CONTACTO */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-sm">
-          <h2 className="font-bold text-gray-900 text-lg">Contacto</h2>
+        {/* CONTACTO */}
+        <div className="bg-white rounded-2xl border p-5 space-y-4" style={{ borderColor: 'var(--border)' }}>
+          <h2 className="font-display font-bold text-gray-900 text-lg">Contacto</h2>
           {inp('nombre', 'Nombre completo', { required: true, placeholder: 'Juan Pérez', autoComplete: 'name' })}
           <div>
-            <label className="block text-base font-medium text-gray-700 mb-1">
-              Teléfono<span className="text-red-400 ml-1">*</span>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Teléfono<span className="text-red-400 ml-0.5">*</span>
             </label>
             <input
               value={form.telefono}
@@ -457,7 +454,8 @@ export default function Checkout() {
                   telefono: /^\d{10}$/.test(v) ? '' : 'Ingresa un número celular válido de 10 dígitos',
                 }))
               }}
-              className={`w-full border rounded-xl px-4 py-3 text-base focus:outline-none ${fieldErrors.telefono ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-[#1A6B3C]'}`}
+              className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ${fieldErrors.telefono ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+              style={!fieldErrors.telefono ? { borderColor: 'var(--border)' } : {}}
             />
             {fieldErrors.telefono && <p className="text-red-500 text-sm mt-1">{fieldErrors.telefono}</p>}
           </div>
@@ -465,18 +463,17 @@ export default function Checkout() {
 
         {deliveryType === 'domicilio' && (
           <>
-            {/* BLOQUE 2 — ¿A DÓNDE LLEVAMOS TU PEDIDO? */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-              <h2 className="font-bold text-gray-900 text-lg mb-4">¿A dónde llevamos tu pedido?</h2>
+            {/* TIPO DE LUGAR */}
+            <div className="bg-white rounded-2xl border p-5" style={{ borderColor: 'var(--border)' }}>
+              <h2 className="font-display font-bold text-gray-900 text-lg mb-4">¿A dónde llevamos tu pedido?</h2>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setForm(f => ({ ...f, lugarType: 'oficina' }))}
-                  className={`py-4 rounded-xl font-bold text-base border-2 transition-colors flex flex-col items-center gap-1 ${
-                    form.lugarType === 'oficina'
-                      ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white'
-                      : 'bg-white border-gray-200 text-gray-600'
+                  className={`py-4 rounded-xl font-semibold text-sm border-2 transition-all flex flex-col items-center gap-1.5 ${
+                    form.lugarType === 'oficina' ? 'text-gray-900' : 'text-gray-500'
                   }`}
+                  style={form.lugarType === 'oficina' ? { borderColor: 'var(--restaurant-accent)', background: 'rgba(30,91,79,0.04)' } : { borderColor: 'var(--border)' }}
                 >
                   <span className="text-2xl">🏢</span>
                   <span>Oficina / Comercio</span>
@@ -484,11 +481,10 @@ export default function Checkout() {
                 <button
                   type="button"
                   onClick={() => setForm(f => ({ ...f, lugarType: 'casa' }))}
-                  className={`py-4 rounded-xl font-bold text-base border-2 transition-colors flex flex-col items-center gap-1 ${
-                    form.lugarType === 'casa'
-                      ? 'bg-[#1A6B3C] border-[#1A6B3C] text-white'
-                      : 'bg-white border-gray-200 text-gray-600'
+                  className={`py-4 rounded-xl font-semibold text-sm border-2 transition-all flex flex-col items-center gap-1.5 ${
+                    form.lugarType === 'casa' ? 'text-gray-900' : 'text-gray-500'
                   }`}
+                  style={form.lugarType === 'casa' ? { borderColor: 'var(--restaurant-accent)', background: 'rgba(30,91,79,0.04)' } : { borderColor: 'var(--border)' }}
                 >
                   <span className="text-2xl">🏠</span>
                   <span>Casa</span>
@@ -496,12 +492,12 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* BLOQUE 3 — UBICACIÓN */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-sm">
+            {/* UBICACIÓN */}
+            <div className="bg-white rounded-2xl border p-5 space-y-4" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between">
-                <h2 className="font-bold text-gray-900 text-lg">Ubicación</h2>
+                <h2 className="font-display font-bold text-gray-900 text-lg">Ubicación</h2>
                 {customer && (customer.calle || customer.colonia) && (
-                  <span className="text-xs text-[#1A6B3C] font-semibold">Guardada ✓</span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--restaurant-accent)' }}>Guardada ✓</span>
                 )}
               </div>
 
@@ -546,28 +542,28 @@ export default function Checkout() {
           </>
         )}
 
-        {/* Pickup — indicaciones only */}
+        {/* PICKUP */}
         {deliveryType === 'pickup' && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <h2 className="font-bold text-gray-900 text-lg mb-3">¿Alguna indicación?</h2>
+          <div className="bg-white rounded-2xl border p-5" style={{ borderColor: 'var(--border)' }}>
+            <h2 className="font-display font-bold text-gray-900 text-lg mb-3">¿Alguna indicación?</h2>
             {inp('indicaciones', 'Indicaciones (opcional)', {
               placeholder: 'Paso a recoger en 20 min...',
             })}
           </div>
         )}
 
-        {/* BLOQUE 4 — PAGO */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4 shadow-sm">
-          <h2 className="font-bold text-gray-900 text-lg">Pago</h2>
-          <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+        {/* PAGO */}
+        <div className="bg-white rounded-2xl border p-5 space-y-4" style={{ borderColor: 'var(--border)' }}>
+          <h2 className="font-display font-bold text-gray-900 text-lg">Pago</h2>
+          <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: 'var(--background)' }}>
             <span className="text-xl">💵</span>
             <div>
-              <p className="font-medium text-gray-800 text-base">Efectivo al entregar</p>
+              <p className="font-medium text-gray-800 text-sm">Efectivo al entregar</p>
               <p className="text-sm text-gray-500">Pago en efectivo contra entrega</p>
             </div>
           </div>
           <div>
-            <label className="block text-base font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               ¿Con cuánto pagas?
             </label>
             <input
@@ -588,12 +584,13 @@ export default function Checkout() {
               min={orderTotal}
               step="1"
               placeholder={`Ej. $${orderTotal.toFixed(0)}`}
-              className={`w-full border rounded-xl px-4 py-3 text-base focus:outline-none ${fieldErrors.monto_pago ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-[#1A6B3C]'}`}
+              className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ${fieldErrors.monto_pago ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+              style={!fieldErrors.monto_pago ? { borderColor: 'var(--border)' } : {}}
             />
             {fieldErrors.monto_pago && <p className="text-red-500 text-sm mt-1">{fieldErrors.monto_pago}</p>}
-            {isExact && <p className="text-base text-[#1A6B3C] font-medium mt-1.5">Pago exacto ✓</p>}
+            {isExact && <p className="text-sm font-medium mt-1.5" style={{ color: 'var(--restaurant-accent)' }}>Pago exacto ✓</p>}
             {!isExact && montoPago > orderTotal && montoPago > 0 && (
-              <p className="text-base text-[#1A6B3C] font-bold mt-1.5">
+              <p className="text-sm font-bold mt-1.5 text-gray-900">
                 Tu cambio: <span>${cambio.toFixed(2)}</span>
               </p>
             )}
@@ -603,9 +600,9 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* BLOQUE 5 — CÓDIGO DE DESCUENTO */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 shadow-sm">
-          <h2 className="font-bold text-gray-900 text-lg">¿Tienes un código de descuento?</h2>
+        {/* DESCUENTO */}
+        <div className="bg-white rounded-2xl border p-5 space-y-3" style={{ borderColor: 'var(--border)' }}>
+          <h2 className="font-display font-bold text-gray-900 text-lg">¿Tienes un código de descuento?</h2>
           {!coupon ? (
             <div className="space-y-2">
               <div className="flex gap-2">
@@ -616,13 +613,15 @@ export default function Checkout() {
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCode() } }}
                   placeholder="Ej. VERANO15"
                   maxLength={30}
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-base font-mono uppercase focus:outline-none focus:border-[#1A6B3C] tracking-wider"
+                  className="flex-1 border rounded-xl px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:ring-2 tracking-wider"
+                  style={{ borderColor: 'var(--border)' }}
                 />
                 <button
                   type="button"
                   onClick={applyCode}
                   disabled={couponLoading || !couponInput.trim()}
-                  className="px-5 py-3 rounded-xl bg-[#1A6B3C] text-white font-bold text-base disabled:opacity-50 shrink-0 transition-opacity"
+                  className="px-5 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-50 shrink-0 transition-opacity hover:opacity-90"
+                  style={{ background: 'var(--restaurant-accent)' }}
                 >
                   {couponLoading ? '...' : 'Aplicar'}
                 </button>
@@ -632,14 +631,14 @@ export default function Checkout() {
           ) : (
             <div
               className="flex items-center justify-between rounded-xl px-4 py-3"
-              style={{ backgroundColor: 'rgba(52,199,118,0.10)', border: '1.5px solid #34C776' }}
+              style={{ backgroundColor: 'rgba(46,204,113,0.08)', border: '1px solid rgba(46,204,113,0.3)' }}
             >
               <div>
                 <p className="font-bold text-sm" style={{ color: '#15803D' }}>
                   ✓ Código aplicado: {coupon.codigo}
                 </p>
                 <p className="text-sm font-semibold mt-0.5" style={{ color: '#15803D' }}>
-                  -{descuento.toFixed(2)} de descuento
+                  -${descuento.toFixed(2)} de descuento
                 </p>
               </div>
               <button
@@ -653,14 +652,14 @@ export default function Checkout() {
           )}
         </div>
 
-        {/* BLOQUE 6 — RESUMEN DEL PEDIDO */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <h2 className="font-bold text-gray-900 text-lg mb-3">Resumen del pedido</h2>
+        {/* RESUMEN */}
+        <div className="bg-white rounded-2xl border p-5" style={{ borderColor: 'var(--border)' }}>
+          <h2 className="font-display font-bold text-gray-900 text-lg mb-3">Resumen del pedido</h2>
           <div className="space-y-2 mb-3">
             {items.map((item, idx) => {
               const extrasCost = (item.extras_seleccionados ?? []).reduce((s, e) => s + e.precio * e.cantidad, 0)
               return (
-                <div key={idx} className="flex justify-between text-base">
+                <div key={idx} className="flex justify-between text-sm">
                   <span className="text-gray-700 leading-snug">
                     {item.quantity}× {item.dish.nombre}
                     {item.variantes_seleccionadas && item.variantes_seleccionadas.length > 0
@@ -674,31 +673,31 @@ export default function Checkout() {
               )
             })}
           </div>
-          <div className="border-t border-gray-100 pt-2 space-y-1.5">
-            <div className="flex justify-between text-base text-gray-600"><span>Subtotal</span><span>${total.toFixed(2)}</span></div>
+          <div className="border-t pt-2 space-y-1.5" style={{ borderColor: 'var(--border)' }}>
+            <div className="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span>${total.toFixed(2)}</span></div>
             {descuento > 0 && coupon && (
-              <div className="flex justify-between text-base font-semibold" style={{ color: '#15803D' }}>
+              <div className="flex justify-between text-sm font-semibold" style={{ color: '#15803D' }}>
                 <span>Descuento ({coupon.codigo})</span>
                 <span>-${descuento.toFixed(2)}</span>
               </div>
             )}
             {deliveryType === 'pickup' ? (
-              <div className="flex justify-between text-base text-gray-600"><span>Recoger en local</span><span>Gratis</span></div>
+              <div className="flex justify-between text-sm text-gray-600"><span>Recoger en local</span><span>Gratis</span></div>
             ) : costoPorPlatillo > 0 ? (
               <div className="flex justify-between text-sm text-gray-500">
                 <span>Envío: ${costoPorPlatillo} × {dishCount} platillo{dishCount !== 1 ? 's' : ''}</span>
                 <span>${deliveryCost.toFixed(2)}</span>
               </div>
             ) : (
-              <div className="flex justify-between text-base text-gray-600"><span>Envío</span><span>Gratis</span></div>
+              <div className="flex justify-between text-sm text-gray-600"><span>Envío</span><span>Gratis</span></div>
             )}
             <div className="flex justify-between font-bold text-gray-900 text-lg pt-1"><span>Total</span><span>${orderTotal.toFixed(2)}</span></div>
           </div>
         </div>
 
-        {/* Aviso de cobertura */}
+        {/* AVISO DE COBERTURA */}
         {deliveryType === 'domicilio' && (
-          <div className="rounded-2xl px-4 py-3.5 flex gap-3" style={{ backgroundColor: '#FEFCE8', border: '1.5px solid #FDE047' }}>
+          <div className="rounded-2xl px-4 py-3.5 flex gap-3" style={{ backgroundColor: '#FEFCE8', border: '1px solid rgba(253,224,71,0.4)' }}>
             <span className="text-lg shrink-0 mt-0.5">📍</span>
             <p className="text-sm text-yellow-800 leading-relaxed">
               Solo entregamos a domicilio dentro de un radio aproximado de 1 km del restaurante. Si tu ubicación está fuera de esta zona, tu pedido podría cambiarse a <strong>PARA RECOGER</strong>.
@@ -706,12 +705,13 @@ export default function Checkout() {
           </div>
         )}
 
-        {error && <p className="text-red-500 text-base text-center">{error}</p>}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
         <button
           type="submit"
           disabled={loading || belowTotal}
-          className="w-full bg-[#1A6B3C] text-white py-4 rounded-xl font-bold text-base hover:bg-[#155a32] disabled:opacity-60 transition-colors"
+          className="w-full text-white py-4 rounded-xl font-bold text-base disabled:opacity-60 transition-all hover:opacity-90"
+          style={{ background: 'var(--ink)' }}
         >
           {loading ? 'Enviando pedido...' : `Confirmar pedido · $${orderTotal.toFixed(2)}`}
         </button>
@@ -719,13 +719,13 @@ export default function Checkout() {
 
       {/* Confirmation modal */}
       {confirmModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center sm:px-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center sm:px-4">
           <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4">
-            <h3 className="font-bold text-gray-900 text-lg">¿Confirmas tu pedido?</h3>
+            <h3 className="font-display font-bold text-gray-900 text-lg">¿Confirmas tu pedido?</h3>
 
             <div className="space-y-1.5 max-h-44 overflow-y-auto">
               {items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-base">
+                <div key={idx} className="flex justify-between text-sm">
                   <span className="text-gray-700 leading-snug">
                     {item.quantity}× {item.dish.nombre}
                     {item.variantes_seleccionadas && item.variantes_seleccionadas.length > 0
@@ -739,10 +739,10 @@ export default function Checkout() {
               ))}
             </div>
 
-            <div className="border-t border-gray-100 pt-3 space-y-1.5">
-              <div className="flex justify-between text-base text-gray-600"><span>Subtotal</span><span>${total.toFixed(2)}</span></div>
+            <div className="border-t pt-3 space-y-1.5" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span>${total.toFixed(2)}</span></div>
               {descuento > 0 && coupon && (
-                <div className="flex justify-between text-base font-semibold" style={{ color: '#15803D' }}>
+                <div className="flex justify-between text-sm font-semibold" style={{ color: '#15803D' }}>
                   <span>Descuento ({coupon.codigo})</span>
                   <span>-${descuento.toFixed(2)}</span>
                 </div>
@@ -756,7 +756,7 @@ export default function Checkout() {
               <div className="flex justify-between font-bold text-gray-900 text-lg pt-1"><span>Total</span><span>${orderTotal.toFixed(2)}</span></div>
             </div>
 
-            <div className="bg-gray-50 rounded-xl px-4 py-3 space-y-1 text-base text-gray-700">
+            <div className="rounded-xl px-4 py-3 space-y-1 text-sm text-gray-700" style={{ background: 'var(--background)' }}>
               <p>{deliveryType === 'pickup' ? '🏪 Recoger en local' : '🛵 Entrega a domicilio'}</p>
               {addressSummary && <p className="text-sm text-gray-500">{addressSummary}</p>}
               <p>
@@ -772,14 +772,16 @@ export default function Checkout() {
               <button
                 onClick={() => setConfirmModal(false)}
                 disabled={loading}
-                className="flex-1 border border-gray-200 py-3 rounded-xl text-base font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="flex-1 border py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                style={{ borderColor: 'var(--border)' }}
               >
                 Revisar de nuevo
               </button>
               <button
                 onClick={doInsert}
                 disabled={loading}
-                className="flex-1 bg-[#1A6B3C] text-white py-3 rounded-xl text-base font-bold hover:bg-[#155a32] disabled:opacity-60"
+                className="flex-1 text-white py-3 rounded-xl text-sm font-bold disabled:opacity-60 hover:opacity-90"
+                style={{ background: 'var(--ink)' }}
               >
                 {loading ? 'Enviando...' : 'Sí, confirmar pedido'}
               </button>
