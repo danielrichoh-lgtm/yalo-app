@@ -273,9 +273,7 @@ export default function MenuPage() {
             </p>
             <div className="rounded-2xl px-5 py-4" style={{ background: 'var(--background)', border: '1px solid var(--border)' }}>
               <p className="text-[15px] leading-snug text-gray-900">
-                {open
-                  ? restaurant.banner_promo.trim().replace(/GRATIS/i, (m) => `<span style="color: var(--restaurant-accent); font-weight: 600">${m}</span>`)
-                  : `🍪 Al abrir, tu pedido en línea trae galleta GRATIS`
+                {restaurant.banner_promo.trim().replace(/GRATIS/i, (m) => `<span style="color: var(--restaurant-accent); font-weight: 600">${m}</span>`)
                 }
               </p>
               <span className="inline-block mt-2 text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(30,91,79,0.08)', color: 'var(--yalo-primary)' }}>

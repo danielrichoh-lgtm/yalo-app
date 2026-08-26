@@ -285,6 +285,40 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
         </div>
       </section>
 
+      {/* Banner de promoción */}
+      <section className="bg-white rounded-xl border border-gray-100 p-4">
+        <h3 className="font-bold text-gray-900 mb-4">Banner de promoción</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="font-medium text-gray-800">Mostrar banner de promoción</p>
+            <p className="text-xs text-gray-500">Aparece arriba del menú en la app del cliente</p>
+          </div>
+          <button
+            onClick={() => saveConfig({ banner_activo: !config.banner_activo })}
+            className={`w-12 h-6 rounded-full transition-colors ${config.banner_activo ? 'bg-[#2ECC71]' : 'bg-gray-200'}`}
+          >
+            <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform mx-0.5 ${config.banner_activo ? 'translate-x-6' : 'translate-x-0'}`} />
+          </button>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Mensaje del banner</label>
+          <textarea
+            value={config.banner_promo ?? ''}
+            onChange={e => setConfig(c => ({ ...c, banner_promo: e.target.value }))}
+            placeholder="🎉 Usa el código BIENVENIDO10 y obtén 10% en tu primer pedido directo"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none h-20 focus:outline-none focus:border-[#1E5B4F]"
+          />
+          <p className="text-xs text-gray-400 mt-1">Si dejas el campo vacío, el banner no se mostrará</p>
+          <button
+            onClick={() => saveField('banner_promo', config.banner_promo?.trim() ?? '')}
+            disabled={saving}
+            className="mt-3 px-4 py-2 bg-[#1E5B4F] text-white text-sm rounded-lg hover:bg-[#164A40] disabled:opacity-60"
+          >
+            {savedFields.banner_promo ? 'Guardado ✓' : 'Guardar'}
+          </button>
+        </div>
+      </section>
+
       {/* Delivery config */}
       <section className="bg-white rounded-xl border border-gray-100 p-4">
         <h3 className="font-bold text-gray-900 mb-4">Configuración de entrega</h3>

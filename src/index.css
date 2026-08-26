@@ -22,3 +22,19 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
 .font-display { font-family: 'Playfair Display', serif; }
 .font-body { font-family: 'Inter', system-ui, sans-serif; }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-ticket,
+  #print-ticket * {
+    visibility: visible;
+  }
+  #print-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm;
+  }
+}
