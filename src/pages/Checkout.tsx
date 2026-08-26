@@ -274,7 +274,9 @@ export default function Checkout() {
     const finalMonto = montoPago > 0 ? montoPago : finalTotal
     const finalCambio = Math.max(0, finalMonto - finalTotal)
 
-    const { data: order, error: dbError } = await supabase.from('orders').insert({
+    const nuevoOrderId = crypto.randomUUID()
+    const { error: dbError } = await supabase.from('orders').insert({
+      id: nuevoOrderId,
       numero_orden,
       restaurant_id: restaurant!.id,
       customer_email: customer?.email ?? '',
@@ -302,9 +304,9 @@ export default function Checkout() {
       codigo_descuento: couponCodigoToSave,
       monto_descuento: finalDescuento,
       status: 'Nuevo',
-    }).select().single()
+    })
 
-    if (dbError || !order) {
+    if (dbError) {
       console.error('Order insert error:', dbError)
       console.error('Order insert error (full):', JSON.stringify(dbError, null, 2))
       console.error('Order insert payload:', JSON.stringify({
@@ -355,7 +357,7 @@ export default function Checkout() {
     setLoading(false)
     orderConfirmed.current = true
     clearCart()
-    navigate(`/pedido/confirmado/${order.id}`)
+    navigate(`/pedido/confirmado/${nuevoOrderId}`)
   }
 
   const inp = (
