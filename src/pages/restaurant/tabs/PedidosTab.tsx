@@ -72,7 +72,7 @@ function elapsedLabel(createdAt: string, now: number): string {
   return m === 0 ? `${h} h` : `${h} h ${m} min`
 }
 
-function printOrder(order: Order): void {
+function printOrder(order: Order, restaurant: Restaurant): void {
   const items: OrderItem[] = Array.isArray(order.items)
     ? order.items
     : JSON.parse(order.items as unknown as string)
@@ -119,7 +119,8 @@ function printOrder(order: Order): void {
 <div style="font-family:Arial,Helvetica,sans-serif;font-size:9pt;width:50mm;max-width:50mm;margin:0 auto;padding:0;color:#000;background:#fff;box-sizing:border-box;">
   <div style="text-align:center;margin-bottom:3px;">
     <div style="font-size:8pt;font-weight:900;">RESTAURANTE</div>
-    <div style="font-size:12pt;font-weight:900;">MI TIERRA</div>
+    <div style="font-size:12pt;font-weight:900;">${restaurant.nombre}</div>
+    ${(restaurant.razon_social || restaurant.rfc) ? `<div style="font-size:7pt;color:#555;">${[restaurant.razon_social, restaurant.rfc].filter(Boolean).join(' · ')}</div>` : ''}
   </div>
   ${solid}
   <div style="text-align:center;margin:2px 0 3px;">
@@ -324,8 +325,9 @@ export default function PedidosTab({ restaurant }: Props) {
           <div className="space-y-3">
             {nuevo.map(order => (
               <OrderCard key={order.id} order={order} now={now}
-                onAccept={async () => { await updateStatus(order.id, 'En proceso'); printOrder(order) }}
-                onDecline={() => updateStatus(order.id, 'Cancelado')} />
+                onAccept={async () => { await updateStatus(order.id, 'En proceso'); printOrder(order, restaurant) }}
+                onDecline={() => updateStatus(order.id, 'Cancelado')}
+                restaurant={restaurant} />
             ))}
           </div>
         </section>
@@ -337,7 +339,7 @@ export default function PedidosTab({ restaurant }: Props) {
           <h2 className="font-bold text-gray-900 mb-3 text-lg">En proceso ({enProceso.length})</h2>
           <div className="space-y-3">
             {enProceso.map(order => (
-              <OrderCard key={order.id} order={order} now={now}
+              <OrderCard key={order.id} order={order} now={now} restaurant={restaurant}
                 onCancel={() => updateStatus(order.id, 'Cancelado')}
               >
                 <div className="mt-4">
@@ -361,7 +363,7 @@ export default function PedidosTab({ restaurant }: Props) {
           <h2 className="font-bold text-gray-500 mb-3 text-lg">Entregados ({entregados.length})</h2>
           <div className="space-y-3">
             {entregados.map(order => (
-              <OrderCard key={order.id} order={order} now={now}>
+              <OrderCard key={order.id} order={order} now={now} restaurant={restaurant}>
                 <div className="mt-3 flex items-center gap-2">
                   <span className="text-sm px-3 py-1.5 rounded-xl font-bold"
                     style={{ backgroundColor: 'rgba(0,0,0,0.12)', color: '#166534' }}>
@@ -390,7 +392,7 @@ export default function PedidosTab({ restaurant }: Props) {
           {canceladosOpen && (
             <div className="space-y-3">
               {cancelados.map(order => (
-                <OrderCard key={order.id} order={order} now={now} />
+                <OrderCard key={order.id} order={order} now={now} restaurant={restaurant} />
               ))}
             </div>
           )}
@@ -467,13 +469,14 @@ export default function PedidosTab({ restaurant }: Props) {
 interface CardProps {
   order: Order
   now: number
+  restaurant: Restaurant
   onAccept?: () => void
   onDecline?: () => void
   onCancel?: () => void
   children?: React.ReactNode
 }
 
-function OrderCard({ order, now, onAccept, onDecline, onCancel, children }: CardProps) {
+function OrderCard({ order, now, restaurant, onAccept, onDecline, onCancel, children }: CardProps) {
   const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items as unknown as string)
   const isLate = order.status === 'Nuevo' && (now - new Date(order.created_at).getTime()) > 10 * 60_000
   const c = getColors(order.status)
@@ -655,7 +658,7 @@ function OrderCard({ order, now, onAccept, onDecline, onCancel, children }: Card
 
       {/* Manual print fallback */}
       <button
-        onClick={() => printOrder(order)}
+        onClick={() => printOrder(order, restaurant)}
         className="mt-3 w-full py-2.5 rounded-xl font-bold text-sm text-center active:scale-95 transition-transform"
         style={{ backgroundColor: '#1f2937', color: '#ffffff' }}
       >

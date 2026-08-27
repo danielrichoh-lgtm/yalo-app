@@ -432,6 +432,46 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
         </div>
       </section>
 
+      {/* Datos de facturación */}
+      <section className="bg-white rounded-xl border border-gray-100 p-4">
+        <h3 className="font-bold text-gray-900 mb-4">Datos de facturación (opcional)</h3>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Razón social</label>
+            <input
+              type="text"
+              value={config.razon_social ?? ''}
+              onChange={e => setConfig(c => ({ ...c, razon_social: e.target.value }))}
+              placeholder="Ej. Mi Tierra S.A. de C.V."
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">RFC</label>
+            <input
+              type="text"
+              value={config.rfc ?? ''}
+              onChange={e => setConfig(c => ({ ...c, rfc: e.target.value }))}
+              placeholder="Ej. ABC123456XXX"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]"
+            />
+          </div>
+          <p className="text-xs text-gray-400">
+            Estos datos son opcionales y solo se muestran en tu comanda impresa para tu propio control. No generan una factura fiscal válida ante el SAT.
+          </p>
+          <button
+            onClick={() => {
+              saveField('razon_social', config.razon_social?.trim() ?? null)
+              saveField('rfc', config.rfc?.trim() ?? null)
+            }}
+            disabled={saving}
+            className="px-4 py-2 bg-[#1E5B4F] text-white text-sm rounded-lg hover:bg-[#164A40] disabled:opacity-60"
+          >
+            {savedFields.razon_social || savedFields.rfc ? 'Guardado ✓' : 'Guardar'}
+          </button>
+        </div>
+      </section>
+
       {/* Platillos */}
       <section className="bg-white rounded-xl border border-gray-100 p-4">
         <div className="flex items-center justify-between mb-4">

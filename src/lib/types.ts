@@ -51,6 +51,8 @@ export interface Restaurant {
   onboarding_completed?: boolean
   radio_entrega_km?: number | null
   google_place_id?: string | null
+  razon_social?: string | null
+  rfc?: string | null
   created_at: string
 }
 

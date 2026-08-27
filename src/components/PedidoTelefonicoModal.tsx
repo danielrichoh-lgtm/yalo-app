@@ -303,7 +303,7 @@ export default function PedidoTelefonicoModal({ restaurant, onClose, onConfirmed
         return
       }
 
-      printComanda(order as OrderForPrint)
+      printComanda(order as OrderForPrint, restaurant)
 
       setCart([])
       setForm({
@@ -837,7 +837,7 @@ interface OrderForPrint {
   created_at: string
 }
 
-function printComanda(order: OrderForPrint): void {
+function printComanda(order: OrderForPrint, restaurant: Restaurant): void {
   const items: OrderItem[] = JSON.parse(order.items)
 
   const date = new Date(order.created_at)
@@ -876,7 +876,8 @@ function printComanda(order: OrderForPrint): void {
 <div style="font-family:Arial,Helvetica,sans-serif;font-size:9pt;width:50mm;max-width:50mm;margin:0 auto;padding:0;color:#000;background:#fff;box-sizing:border-box;">
   <div style="text-align:center;margin-bottom:3px;">
     <div style="font-size:8pt;font-weight:900;">RESTAURANTE</div>
-    <div style="font-size:12pt;font-weight:900;">MI TIERRA</div>
+    <div style="font-size:12pt;font-weight:900;">${restaurant.nombre}</div>
+    ${(restaurant.razon_social || restaurant.rfc) ? `<div style="font-size:7pt;color:#555;">${[restaurant.razon_social, restaurant.rfc].filter(Boolean).join(' · ')}</div>` : ''}
   </div>
   ${solid}
   <div style="text-align:center;margin:2px 0 3px;">
