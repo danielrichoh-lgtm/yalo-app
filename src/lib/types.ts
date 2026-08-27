@@ -50,6 +50,7 @@ export interface Restaurant {
   estado?: RestaurantEstado
   onboarding_completed?: boolean
   radio_entrega_km?: number | null
+  google_place_id?: string | null
   created_at: string
 }
 

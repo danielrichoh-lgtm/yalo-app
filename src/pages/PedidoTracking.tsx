@@ -42,6 +42,7 @@ export default function PedidoTracking() {
   const [loading, setLoading] = useState(true)
   const [showDetails, setShowDetails] = useState(false)
   const [restaurantSlug, setRestaurantSlug] = useState<string>('')
+  const [googlePlaceId, setGooglePlaceId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!orderId) return
@@ -58,10 +59,13 @@ export default function PedidoTracking() {
     if (!order?.restaurant_id) return
     supabase
       .from('Restaurants')
-      .select('slug')
+      .select('slug, google_place_id')
       .eq('id', order.restaurant_id)
       .maybeSingle()
-      .then(({ data }) => { if (data?.slug) setRestaurantSlug(data.slug) })
+      .then(({ data }) => {
+        if (data?.slug) setRestaurantSlug(data.slug)
+        if (data?.google_place_id) setGooglePlaceId(data.google_place_id)
+      })
   }, [order?.restaurant_id])
 
   const menuPath = restaurantSlug ? `/menu/${restaurantSlug}` : '/'
@@ -147,6 +151,19 @@ export default function PedidoTracking() {
           </div>
         </div>
         <div className="max-w-md mx-auto px-4 -mt-4 space-y-3">
+          {googlePlaceId && (
+            <a
+              href={`https://search.google.com/local/writereview?placeid=${googlePlaceId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block bg-white rounded-xl border p-4 text-center hover:opacity-90 transition-opacity"
+              style={{ borderColor: 'var(--yalo-primary)' }}
+            >
+              <p className="text-sm font-semibold" style={{ color: 'var(--yalo-primary)' }}>
+                ¿Todo bien con tu pedido? Déjanos tu reseña en Google
+              </p>
+            </a>
+          )}
           <OrderItemsCard order={order} />
           <div className="flex gap-3">
             <Link to="/cliente/pedidos" className="flex-1 border py-3.5 rounded-xl font-semibold text-center text-sm hover:bg-gray-50" style={{ borderColor: 'var(--yalo-primary)', color: 'var(--yalo-primary)' }}>

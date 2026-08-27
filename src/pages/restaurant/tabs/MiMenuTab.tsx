@@ -381,6 +381,31 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
         </div>
       </section>
 
+      {/* Reseña en Google */}
+      <section className="bg-white rounded-xl border border-gray-100 p-4">
+        <h3 className="font-bold text-gray-900 mb-4">Reseña en Google</h3>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Google Place ID</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={config.google_place_id ?? ''}
+            onChange={e => setConfig(c => ({ ...c, google_place_id: e.target.value }))}
+            placeholder="Ej. ChIJN1t1X5mZbIYRc3mZbIYRc3m"
+            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1E5B4F]"
+          />
+          <button
+            onClick={() => saveField('google_place_id', config.google_place_id?.trim() ?? '')}
+            disabled={saving}
+            className="px-4 py-2 bg-[#1E5B4F] text-white text-sm rounded-lg hover:bg-[#164A40] disabled:opacity-60 whitespace-nowrap"
+          >
+            {savedFields.google_place_id ? 'Guardado ✓' : 'Guardar'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mt-1.5">
+          Búscalo gratis aquí: <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" rel="noopener noreferrer" className="text-[#1E5B4F] underline">https://developers.google.com/maps/documentation/places/web-service/place-id</a> — escribe el nombre de tu restaurante y copia el ID que te dé.
+        </p>
+      </section>
+
       {/* Logo */}
       <section className="bg-white rounded-xl border border-gray-100 p-4">
         <h3 className="font-bold text-gray-900 mb-4">Logo del restaurante</h3>

@@ -709,13 +709,21 @@ export default function Checkout() {
 
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
+        {restaurant?.estado !== 'active' && (
+          <div className="rounded-2xl px-4 py-3.5 text-center" style={{ backgroundColor: '#FEF3C7', border: '1px solid rgba(251,191,36,0.4)' }}>
+            <p className="text-sm font-semibold text-amber-800">
+              Este restaurante está en configuración y aún no acepta pedidos.
+            </p>
+          </div>
+        )}
+
         <button
           type="submit"
-          disabled={loading || belowTotal}
+          disabled={loading || belowTotal || restaurant?.estado !== 'active'}
           className="w-full text-white py-4 rounded-xl font-bold text-base disabled:opacity-60 transition-all hover:opacity-90"
           style={{ background: 'var(--ink)' }}
         >
-          {loading ? 'Enviando pedido...' : `Confirmar pedido · $${orderTotal.toFixed(2)}`}
+          {loading ? 'Enviando pedido...' : `Confirmar pedido · ${orderTotal.toFixed(2)}`}
         </button>
       </form>
 

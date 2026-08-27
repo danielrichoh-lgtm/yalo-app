@@ -80,6 +80,7 @@ function printOrder(order: Order): void {
   const date = new Date(order.created_at)
   const tz = 'America/Monterrey'
   const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: tz })
+  const horaStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', timeZone: tz })
 
   const dash = `<div style="border-top:1px dashed #000;margin:6px 0;"></div>`
   const solid = `<div style="border-top:2px solid #000;margin:6px 0;"></div>`
@@ -131,7 +132,7 @@ function printOrder(order: Order): void {
   <div style="text-align:center;margin-bottom:4px;">
     <div style="font-size:11pt;font-weight:900;word-break:break-word;">${order.customer_nombre}</div>
     <div style="font-size:10pt;font-weight:700;word-break:break-word;">Tel: ${order.customer_telefono}</div>
-    <div style="font-size:8pt;color:#555;">${dateStr}</div>
+    <div style="font-size:8pt;color:#555;">${dateStr} · ${horaStr}</div>
   </div>
   ${order.delivery_type === 'domicilio' && addrLines.length > 0 ? `
   ${solid}
