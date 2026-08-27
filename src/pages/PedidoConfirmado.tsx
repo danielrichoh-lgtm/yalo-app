@@ -24,6 +24,7 @@ export default function PedidoConfirmado() {
   const [tiempoEstimado, setTiempoEstimado] = useState<number>(25)
   const [restaurantSlug, setRestaurantSlug] = useState<string>('')
   const [restaurantNombre, setRestaurantNombre] = useState<string>('')
+  const [googlePlaceId, setGooglePlaceId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -47,13 +48,14 @@ export default function PedidoConfirmado() {
 
       const { data: rest } = await supabase
         .from('Restaurants')
-        .select('tiempo_estimado, slug, nombre')
+        .select('tiempo_estimado, slug, nombre, google_place_id')
         .eq('id', orderData.restaurant_id)
         .maybeSingle()
 
       setTiempoEstimado(rest?.tiempo_estimado ?? 25)
       setRestaurantSlug(rest?.slug ?? '')
       setRestaurantNombre(rest?.nombre ?? '')
+      if (rest?.google_place_id) setGooglePlaceId(rest.google_place_id)
       setLoading(false)
     }
 
@@ -147,6 +149,20 @@ export default function PedidoConfirmado() {
             />
           </div>
         </div>
+
+        {googlePlaceId && (
+          <a
+            href={`https://search.google.com/local/writereview?placeid=${googlePlaceId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block bg-white rounded-xl border p-4 text-center hover:opacity-90 transition-opacity mb-3"
+            style={{ borderColor: 'var(--yalo-primary)' }}
+          >
+            <p className="text-sm font-semibold" style={{ color: 'var(--yalo-primary)' }}>
+              ¿Todo bien con tu pedido? Déjanos tu reseña en Google
+            </p>
+          </a>
+        )}
 
         <button
           onClick={() => navigate('/cliente/pedidos')}
