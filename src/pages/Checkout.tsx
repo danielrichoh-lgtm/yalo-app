@@ -48,6 +48,17 @@ export default function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
 
+  const acceptedMethods = restaurant?.accepted_payment_methods ?? ['cash']
+  const [paymentMethod, setPaymentMethod] = useState<string>('cash')
+
+  useEffect(() => {
+    if (acceptedMethods.length === 1) {
+      setPaymentMethod(acceptedMethods[0])
+    } else if (acceptedMethods.length > 1 && !acceptedMethods.includes(paymentMethod)) {
+      setPaymentMethod(acceptedMethods[0])
+    }
+  }, [acceptedMethods.join(','), paymentMethod])
+
   useEffect(() => {
     if (!customer) return
     const prefillAddress = async () => {
@@ -169,7 +180,7 @@ export default function Checkout() {
       }
       if (!form.municipio.trim()) errs.municipio = 'El municipio es requerido'
     }
-    if (form.monto_pago && montoPago > 0 && montoPago < orderTotal) {
+    if (paymentMethod === 'cash' && form.monto_pago && montoPago > 0 && montoPago < orderTotal) {
       errs.monto_pago = 'El monto debe ser mayor o igual al total'
     }
     return errs
@@ -304,6 +315,7 @@ export default function Checkout() {
       codigo_descuento: couponCodigoToSave,
       monto_descuento: finalDescuento,
       status: 'Nuevo',
+      payment_method: paymentMethod,
     })
 
     if (dbError) {
@@ -557,6 +569,38 @@ export default function Checkout() {
         {/* PAGO */}
         <div className="bg-white rounded-2xl border p-5 space-y-4" style={{ borderColor: 'var(--border)' }}>
           <h2 className="font-display font-bold text-gray-900 text-lg">Pago</h2>
+          {acceptedMethods.length > 1 && (
+            <div className="grid grid-cols-2 gap-3">
+              {acceptedMethods.includes('cash') && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('cash')}
+                  className={`py-4 rounded-xl font-semibold text-sm border-2 transition-all flex flex-col items-center gap-1.5 ${
+                    paymentMethod === 'cash' ? 'text-gray-900' : 'text-gray-500'
+                  }`}
+                  style={paymentMethod === 'cash' ? { borderColor: 'var(--restaurant-accent)', background: 'rgba(30,91,79,0.04)' } : { borderColor: 'var(--border)' }}
+                >
+                  <span className="text-2xl">💵</span>
+                  <span>Efectivo al entregar</span>
+                </button>
+              )}
+              {acceptedMethods.includes('card_on_delivery') && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('card_on_delivery')}
+                  className={`py-4 rounded-xl font-semibold text-sm border-2 transition-all flex flex-col items-center gap-1.5 ${
+                    paymentMethod === 'card_on_delivery' ? 'text-gray-900' : 'text-gray-500'
+                  }`}
+                  style={paymentMethod === 'card_on_delivery' ? { borderColor: 'var(--restaurant-accent)', background: 'rgba(30,91,79,0.04)' } : { borderColor: 'var(--border)' }}
+                >
+                  <span className="text-2xl">💳</span>
+                  <span>Tarjeta al entregar</span>
+                </button>
+              )}
+            </div>
+          )}
+          {paymentMethod === 'cash' && (
+          <>
           <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: 'var(--background)' }}>
             <span className="text-xl">💵</span>
             <div>
@@ -585,7 +629,7 @@ export default function Checkout() {
               }}
               min={orderTotal}
               step="1"
-              placeholder={`Ej. $${orderTotal.toFixed(0)}`}
+              placeholder={`Ej. ${orderTotal.toFixed(0)}`}
               className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ${fieldErrors.monto_pago ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
               style={!fieldErrors.monto_pago ? { borderColor: 'var(--border)' } : {}}
             />
@@ -600,6 +644,17 @@ export default function Checkout() {
               <p className="text-sm text-gray-400 mt-1.5">Si dejas vacío, se asume pago exacto</p>
             )}
           </div>
+          </>
+          )}
+          {paymentMethod === 'card_on_delivery' && (
+            <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: 'var(--background)' }}>
+              <span className="text-xl">💳</span>
+              <div>
+                <p className="font-medium text-gray-800 text-sm">Tarjeta al entregar</p>
+                <p className="text-sm text-gray-500">Pago con tarjeta contra entrega</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* DESCUENTO */}
@@ -770,11 +825,7 @@ export default function Checkout() {
               <p>{deliveryType === 'pickup' ? '🏪 Recoger en local' : '🛵 Entrega a domicilio'}</p>
               {addressSummary && <p className="text-sm text-gray-500">{addressSummary}</p>}
               <p>
-                💵 Pagas con:{' '}
-                <span className="font-semibold">
-                  {montoPago > 0 ? `$${montoPago.toFixed(2)}` : `$${orderTotal.toFixed(2)} (exacto)`}
-                </span>
-                {cambio > 0 ? ` · Cambio: $${cambio.toFixed(2)}` : ''}
+                {paymentMethod === 'card_on_delivery' ? '💳 Tarjeta al entregar' : `💵 Pagas con: ${montoPago > 0 ? `${montoPago.toFixed(2)}` : `${orderTotal.toFixed(2)} (exacto)`}${cambio > 0 ? ` · Cambio: ${cambio.toFixed(2)}` : ''}`}
               </p>
             </div>
 

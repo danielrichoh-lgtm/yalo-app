@@ -381,6 +381,45 @@ export default function MiMenuTab({ restaurant, onUpdate }: Props) {
         </div>
       </section>
 
+      {/* Métodos de pago */}
+      <section className="bg-white rounded-xl border border-gray-100 p-4">
+        <h3 className="font-bold text-gray-900 mb-4">Métodos de pago</h3>
+        <div className="space-y-3">
+          {(['cash', 'card_on_delivery'] as const).map(method => {
+            const label = method === 'cash' ? 'Efectivo al entregar' : 'Tarjeta al entregar'
+            const icon = method === 'cash' ? '💵' : '💳'
+            const methods = config.accepted_payment_methods ?? ['cash']
+            const checked = methods.includes(method)
+            return (
+              <label key={method} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => {
+                    const current = new Set(methods)
+                    if (checked) {
+                      if (current.size <= 1) return
+                      current.delete(method)
+                    } else {
+                      current.add(method)
+                    }
+                    const arr = Array.from(current)
+                    setConfig(c => ({ ...c, accepted_payment_methods: arr }))
+                    saveField('accepted_payment_methods', arr as unknown as Restaurant['accepted_payment_methods'])
+                  }}
+                  className="w-5 h-5 rounded border-gray-300 text-[#1E5B4F] focus:ring-[#1E5B4F]"
+                />
+                <span className="text-sm font-medium text-gray-800">{icon} {label}</span>
+              </label>
+            )
+          })}
+          {(config.accepted_payment_methods ?? ['cash']).length <= 1 && (
+            <p className="text-xs text-red-500">Debe haber al menos un método de pago activo</p>
+          )}
+          <p className="text-xs text-gray-400">Los clientes solo verán los métodos que actives aquí</p>
+        </div>
+      </section>
+
       {/* Reseña en Google */}
       <section className="bg-white rounded-xl border border-gray-100 p-4">
         <h3 className="font-bold text-gray-900 mb-4">Reseña en Google</h3>

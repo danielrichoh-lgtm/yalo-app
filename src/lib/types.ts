@@ -53,6 +53,7 @@ export interface Restaurant {
   google_place_id?: string | null
   razon_social?: string | null
   rfc?: string | null
+  accepted_payment_methods?: string[]
   created_at: string
 }
 
@@ -156,6 +157,7 @@ export interface Order {
   codigo_descuento?: string | null
   monto_descuento?: number
   canal?: string
+  payment_method?: string | null
   created_at: string
 }
 

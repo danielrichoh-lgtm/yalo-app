@@ -500,6 +500,15 @@ function OrderCard({ order, now, restaurant, onAccept, onDecline, onCancel, chil
               📞 Teléfono
             </span>
           )}
+          {order.payment_method === 'card_on_delivery' ? (
+            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-purple-100 text-purple-700">
+              💳 Tarjeta
+            </span>
+          ) : (
+            <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700">
+              💵 Efectivo
+            </span>
+          )}
         </div>
         <div className="text-right shrink-0">
           <p className="text-3xl font-black leading-none" style={{ color: c.textColor }}>
