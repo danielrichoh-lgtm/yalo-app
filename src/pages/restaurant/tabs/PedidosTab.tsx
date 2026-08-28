@@ -63,15 +63,6 @@ async function playAlertTone() {
   if (ctx) scheduleTones(ctx)
 }
 
-function elapsedLabel(createdAt: string, now: number): string {
-  const mins = Math.floor((now - new Date(createdAt).getTime()) / 60_000)
-  if (mins < 1) return 'Ahora'
-  if (mins < 60) return `${mins} min`
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  return m === 0 ? `${h} h` : `${h} h ${m} min`
-}
-
 function printOrder(order: Order, restaurant: Restaurant): void {
   const items: OrderItem[] = Array.isArray(order.items)
     ? order.items
@@ -175,7 +166,6 @@ interface Props { restaurant: Restaurant }
 
 export default function PedidosTab({ restaurant }: Props) {
   const [orders, setOrders] = useState<Order[]>([])
-  const [now, setNow] = useState(() => Date.now())
   const [audioUnlocked, setAudioUnlocked] = useState(false)
   const knownIds = useRef<Set<string>>(new Set())
   const alertInterval = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -252,8 +242,7 @@ export default function PedidosTab({ restaurant }: Props) {
       })
       .subscribe()
 
-    const timer = setInterval(() => setNow(Date.now()), 60_000)
-    return () => { supabase.removeChannel(channel); clearInterval(timer) }
+    return () => { supabase.removeChannel(channel) }
   }, [fetchOrders])
 
   const updateStatus = async (id: string, status: OrderStatus) => {
@@ -324,7 +313,7 @@ export default function PedidosTab({ restaurant }: Props) {
           </h2>
           <div className="space-y-3">
             {nuevo.map(order => (
-              <OrderCard key={order.id} order={order} now={now}
+              <OrderCard key={order.id} order={order}
                 onAccept={async () => { await updateStatus(order.id, 'En proceso'); printOrder(order, restaurant) }}
                 onDecline={() => updateStatus(order.id, 'Cancelado')}
                 restaurant={restaurant} />
@@ -339,7 +328,7 @@ export default function PedidosTab({ restaurant }: Props) {
           <h2 className="font-bold text-gray-900 mb-3 text-lg">En proceso ({enProceso.length})</h2>
           <div className="space-y-3">
             {enProceso.map(order => (
-              <OrderCard key={order.id} order={order} now={now} restaurant={restaurant}
+              <OrderCard key={order.id} order={order} restaurant={restaurant}
                 onCancel={() => updateStatus(order.id, 'Cancelado')}
               >
                 <div className="mt-4">
@@ -363,7 +352,7 @@ export default function PedidosTab({ restaurant }: Props) {
           <h2 className="font-bold text-gray-500 mb-3 text-lg">Entregados ({entregados.length})</h2>
           <div className="space-y-3">
             {entregados.map(order => (
-              <OrderCard key={order.id} order={order} now={now} restaurant={restaurant}>
+              <OrderCard key={order.id} order={order} restaurant={restaurant}>
                 <div className="mt-3 flex items-center gap-2">
                   <span className="text-sm px-3 py-1.5 rounded-xl font-bold"
                     style={{ backgroundColor: 'rgba(0,0,0,0.12)', color: '#166534' }}>
@@ -392,7 +381,7 @@ export default function PedidosTab({ restaurant }: Props) {
           {canceladosOpen && (
             <div className="space-y-3">
               {cancelados.map(order => (
-                <OrderCard key={order.id} order={order} now={now} restaurant={restaurant} />
+                <OrderCard key={order.id} order={order} restaurant={restaurant} />
               ))}
             </div>
           )}
@@ -468,7 +457,6 @@ export default function PedidosTab({ restaurant }: Props) {
 
 interface CardProps {
   order: Order
-  now: number
   restaurant: Restaurant
   onAccept?: () => void
   onDecline?: () => void
@@ -476,11 +464,9 @@ interface CardProps {
   children?: React.ReactNode
 }
 
-function OrderCard({ order, now, restaurant, onAccept, onDecline, onCancel, children }: CardProps) {
+function OrderCard({ order, restaurant, onAccept, onDecline, onCancel, children }: CardProps) {
   const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items as unknown as string)
-  const isLate = order.status === 'Nuevo' && (now - new Date(order.created_at).getTime()) > 10 * 60_000
   const c = getColors(order.status)
-  const elapsed = elapsedLabel(order.created_at, now)
   const [confirmingDecline, setConfirmingDecline] = useState(false)
   const [confirmingCancel, setConfirmingCancel] = useState(false)
 
@@ -514,8 +500,8 @@ function OrderCard({ order, now, restaurant, onAccept, onDecline, onCancel, chil
           <p className="text-3xl font-black leading-none" style={{ color: c.textColor }}>
             ${order.total.toFixed(0)}
           </p>
-          <p className="text-sm font-semibold mt-0.5" style={{ color: isLate ? '#DC2626' : c.subColor, fontWeight: isLate ? 900 : undefined }}>
-            {isLate ? `⚠ ${elapsed}` : elapsed}
+          <p className="text-xs font-semibold mt-1" style={{ color: c.subColor }}>
+            {new Date(order.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Monterrey' })}
           </p>
         </div>
       </div>
