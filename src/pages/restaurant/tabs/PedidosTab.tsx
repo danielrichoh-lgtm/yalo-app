@@ -500,9 +500,6 @@ function OrderCard({ order, restaurant, onAccept, onDecline, onCancel, children 
           <p className="text-3xl font-black leading-none" style={{ color: c.textColor }}>
             ${order.total.toFixed(0)}
           </p>
-          <p className="text-xs font-semibold mt-1" style={{ color: c.subColor }}>
-            {new Date(order.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Monterrey' })}
-          </p>
         </div>
       </div>
 
